@@ -190,4 +190,36 @@ async function downloadDriveFile(fileId, outputPath) {
     });
 }
 
-module.exports = { getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, syncDriveFolderToSheet, setVideoPublic, downloadDriveFile };
+async function getChannelStats() {
+    const auth = await getAuth();
+    const youtube = google.youtube({ version: 'v3', auth });
+    const response = await youtube.channels.list({
+        part: 'statistics',
+        id: 'UC_k6DDoPbVtsHd6ovucBbVA'
+    });
+    return response.data.items[0]?.statistics || null;
+}
+
+async function updateChannelStats(stats) {
+    if (!stats) return;
+    const auth = await getAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    
+    const values = [
+        ['views', 'subscribers', 'videos', 'lastUpdate'],
+        [stats.viewCount, stats.subscriberCount, stats.videoCount, new Date().toISOString()]
+    ];
+
+    await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'stats!A1',
+        valueInputOption: 'RAW',
+        resource: { values }
+    });
+}
+
+module.exports = { 
+    getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, 
+    syncDriveFolderToSheet, setVideoPublic, downloadDriveFile, getChannelStats,
+    updateChannelStats 
+};

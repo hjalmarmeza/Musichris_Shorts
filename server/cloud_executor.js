@@ -1,4 +1,4 @@
-const { getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, downloadDriveFile } = require('./google_connector');
+const { getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, downloadDriveFile, getChannelStats, updateChannelStats } = require('./google_connector');
 const { generateAIContent } = require('./ai_messenger');
 const { renderShort } = require('../engine');
 const path = require('path');
@@ -44,7 +44,14 @@ async function runEngine() {
         // 5. Actualizar Sheet
         await updateShortStatus(landscape.rowIndex, 'done', ytData.id, song.title);
 
-        console.log('✅ [CLOUD ENGINE] ¡Short completado y subido con éxito!');
+        // 6. Radar de Impacto
+        try {
+            console.log('📊 Actualizando Radar de Impacto...');
+            const stats = await getChannelStats();
+            await updateChannelStats(stats);
+        } catch (e) { console.error('⚠️ Error actualizando Radar:', e.message); }
+
+        console.log('✅ [CLOUD ENGINE] ¡Short completado, subido y Radar actualizado!');
         process.exit(0);
     } catch (e) {
         console.error('❌ [CLOUD ENGINE] ERROR CRÍTICO:', e.message);

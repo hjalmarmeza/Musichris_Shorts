@@ -132,6 +132,39 @@
                         <button onClick={() => setIsConfiguring(true)} className="text-xl opacity-40 hover:opacity-100 transition-opacity">⚙️</button>
                     </header>
 
+                    {/* --- RADAR DE IMPACTO v6.0 --- */}
+                    <div className="glass p-5 rounded-2xl mb-8 border-l-4 border-[#D4AF37] relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-2 opacity-5 translate-x-2 -translate-y-2 group-hover:translate-x-0 transition-transform">
+                            <span className="text-5xl">📊</span>
+                        </div>
+                        <div className="flex justify-between items-center relative z-10">
+                            <div>
+                                <h3 className="text-[10px] uppercase tracking-[2px] text-white/40 mb-1 font-bold">Radar de Impacto</h3>
+                                <p className="text-xs text-white/80 font-medium truncate w-32">@Musichris_Studio</p>
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="text-center">
+                                    <div className="flex items-center gap-1 text-[#D4AF37] font-bold">
+                                        <span className="text-xs">👁️</span>
+                                        <span className="text-sm">--</span>
+                                    </div>
+                                    <p className="text-[8px] uppercase tracking-tighter opacity-30">Vistas</p>
+                                </div>
+                                <div className="text-center">
+                                    <div className="flex items-center gap-1 text-[#D4AF37] font-bold">
+                                        <span className="text-xs">❤️</span>
+                                        <span className="text-sm">--</span>
+                                    </div>
+                                    <p className="text-[8px] uppercase tracking-tighter opacity-30">Likes</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mt-3 flex items-center gap-2">
+                             <div className="w-2 h-2 rounded-full bg-green-500 activity-pulse"></div>
+                             <span className="text-[9px] text-white/30 uppercase tracking-widest">En vivo: Monitoreando el canal...</span>
+                        </div>
+                    </div>
+
                     {isConfiguring && (
                         <div className="glass p-6 rounded-2xl mb-8 border-[#D4AF37]/20 shadow-2xl relative z-10">
                             <h3 className="serif text-lg mb-2">Token de Seguridad</h3>
