@@ -7,7 +7,9 @@ on:
 jobs:
   renderizar_y_subir:
     runs-on: ubuntu-latest
-    timeout-minutes: 15 # SEGURIDAD: Nunca más de 15 minutos
+    timeout-minutes: 15
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Forzar modernidad
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -15,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24' # Versión de vanguardia
           cache: 'npm'
 
       - name: Install System Dependencies
@@ -27,7 +29,6 @@ jobs:
         env:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
         run: |
-          npm config set loglevel error
           npm install --no-audit --no-fund --prefer-offline
 
       - name: Create Work Directories
@@ -43,4 +44,5 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SONG_ID: ${{ github.event.client_payload.songId }}
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+          NODE_OPTIONS: "--no-warnings"
         run: node server/cloud_executor.js

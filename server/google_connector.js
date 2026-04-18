@@ -11,11 +11,24 @@ const DB_SHEET_ID = '19zXfIiAZktXXyixZ1HdcW1IO9bOBn8S8sRPZAXUVZbE';
 const SHORTS_SHEET_ID = '17vd4F5yhQUPYFOO6ZR6uNkBwlq2BuJRNFO9SN-ViN5Y';
 
 async function getAuth() {
-    const content = fs.readFileSync(CREDENTIALS_PATH);
-    const { client_secret, client_id, redirect_uris } = JSON.parse(content).installed;
-    const auth = new OAuth2Client(client_id, client_secret, redirect_uris[0]);
-    auth.setCredentials(JSON.parse(fs.readFileSync(TOKEN_PATH)));
-    return auth;
+    try {
+        if (!fs.existsSync(CREDENTIALS_PATH)) throw new Error(`Missing: ${CREDENTIALS_PATH}`);
+        if (!fs.existsSync(TOKEN_PATH)) throw new Error(`Missing: ${TOKEN_PATH}`);
+
+        const content = fs.readFileSync(CREDENTIALS_PATH);
+        const creds = JSON.parse(content);
+        const key = creds.installed || creds.web;
+        
+        if (!key) throw new Error("Invalid credentials structure: missing 'installed' or 'web'");
+
+        const { client_secret, client_id, redirect_uris } = key;
+        const auth = new OAuth2Client(client_id, client_secret, redirect_uris[0]);
+        auth.setCredentials(JSON.parse(fs.readFileSync(TOKEN_PATH)));
+        return auth;
+    } catch (e) {
+        console.error("❌ [AUTH ENGINE ERROR]", e.message);
+        throw e;
+    }
 }
 
 // Get all songs from DB_Musichris_app Hoja 2
