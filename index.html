@@ -57,6 +57,7 @@
         const REPO_NAME = 'Musichris_Shorts';
         const SHEET_ID = '19zXfIiAZktXXyixZ1HdcW1IO9bOBn8S8sRPZAXUVZbE';
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Hoja%202`;
+        const STATS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=stats`;
 
         function App() {
             const [songs, setSongs] = useState([]);
@@ -66,9 +67,11 @@
             const [isLogOpen, setIsLogOpen] = useState(false);
             const [status, setStatus] = useState('IDLE');
             const [hasNewActivity, setHasNewActivity] = useState(false);
+            const [stats, setStats] = useState({ views: '--', subs: '--' });
             const logEndRef = useRef(null);
 
             useEffect(() => {
+                // Cargar Canciones
                 fetch(CSV_URL)
                     .then(res => res.text())
                     .then(text => {
@@ -83,6 +86,17 @@
                         }).filter(s => s.title);
                         setSongs(parsed);
                     });
+
+                // Cargar Estadísticas (Radar)
+                fetch(STATS_URL)
+                    .then(res => res.text())
+                    .then(text => {
+                        const lines = text.split('\n');
+                        if (lines.length > 1) {
+                            const statsLine = lines[1].split(',').map(c => c.replace(/"/g, ''));
+                            setStats({ views: statsLine[0], subs: statsLine[1] });
+                        }
+                    }).catch(err => console.error("Error cargando stats:", err));
             }, []);
 
             useEffect(() => {
@@ -134,7 +148,7 @@
 
                     {/* --- RADAR DE IMPACTO v6.0 --- */}
                     <div className="glass p-5 rounded-2xl mb-8 border-l-4 border-[#D4AF37] relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-2 opacity-5 translate-x-2 -translate-y-2 group-hover:translate-x-0 transition-transform">
+                        <div className="absolute top-0 right-0 p-2 opacity-10 translate-x-2 -translate-y-2 group-hover:translate-x-0 transition-all duration-700">
                             <span className="text-5xl">📊</span>
                         </div>
                         <div className="flex justify-between items-center relative z-10">
@@ -146,22 +160,22 @@
                                 <div className="text-center">
                                     <div className="flex items-center gap-1 text-[#D4AF37] font-bold">
                                         <span className="text-xs">👁️</span>
-                                        <span className="text-sm">--</span>
+                                        <span className="text-sm">{Number(stats.views).toLocaleString() || '--'}</span>
                                     </div>
                                     <p className="text-[8px] uppercase tracking-tighter opacity-30">Vistas</p>
                                 </div>
                                 <div className="text-center">
                                     <div className="flex items-center gap-1 text-[#D4AF37] font-bold">
                                         <span className="text-xs">❤️</span>
-                                        <span className="text-sm">--</span>
+                                        <span className="text-sm">{Number(stats.subs).toLocaleString() || '--'}</span>
                                     </div>
-                                    <p className="text-[8px] uppercase tracking-tighter opacity-30">Likes</p>
+                                    <p className="text-[8px] uppercase tracking-tighter opacity-30">Subs</p>
                                 </div>
                             </div>
                         </div>
                         <div className="mt-3 flex items-center gap-2">
                              <div className="w-2 h-2 rounded-full bg-green-500 activity-pulse"></div>
-                             <span className="text-[9px] text-white/30 uppercase tracking-widest">En vivo: Monitoreando el canal...</span>
+                             <span className="text-[9px] text-white/30 uppercase tracking-widest">En vivo: Impacto Global de tu Música</span>
                         </div>
                     </div>
 
