@@ -91,7 +91,8 @@ async function generateMasterpieceSequence(row, id) {
     const overlays = [];
     const browser = await puppeteer.launch({ 
         headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        executablePath: require('fs').existsSync('/usr/bin/google-chrome') ? '/usr/bin/google-chrome' : undefined
     });
     
     try {

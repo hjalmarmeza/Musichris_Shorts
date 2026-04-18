@@ -9,6 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="logo.png">
     <style>
         body { 
             background-color: #0A0A0A; 
@@ -117,12 +121,15 @@
 
             return (
                 <div className="w-full max-w-md mx-auto px-4 py-8 pb-20">
-                    <header className="mb-8 flex justify-between items-end">
-                        <div>
-                            <h1 className="serif text-3xl text-[#D4AF37] leading-none mb-1">MusiChris</h1>
-                            <p className="text-[10px] uppercase tracking-[3px] text-white/30 font-bold">Cloud Control</p>
+                    <header className="mb-8 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                            <img src="logo.png" className="w-10 h-10 rounded-xl shadow-lg border border-[#D4AF37]/20" alt="Logo" />
+                            <div>
+                                <h1 className="serif text-2xl text-[#D4AF37] leading-none mb-1">MusiChris</h1>
+                                <p className="text-[8px] uppercase tracking-[3px] text-white/20 font-bold">Cloud Control</p>
+                            </div>
                         </div>
-                        <button onClick={() => setIsConfiguring(true)} className="text-xl opacity-40 hover:opacity-100 transition-opacity pb-1">⚙️</button>
+                        <button onClick={() => setIsConfiguring(true)} className="text-xl opacity-40 hover:opacity-100 transition-opacity">⚙️</button>
                     </header>
 
                     {isConfiguring && (
