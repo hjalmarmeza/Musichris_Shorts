@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const csv = require('csv-parser');
 const { spawnSync, execSync } = require('child_process');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 
 const FFMPEG_PATH = fs.existsSync('/opt/homebrew/bin/ffmpeg') ? '/opt/homebrew/bin/ffmpeg' : 'ffmpeg';
 const FFPROBE_PATH = fs.existsSync('/opt/homebrew/bin/ffprobe') ? '/opt/homebrew/bin/ffprobe' : 'ffprobe';
