@@ -1,6 +1,6 @@
 {
   "name": "musichris-shorts-engine",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Automated YouTube Shorts Production Engine",
   "main": "server/app.js",
   "scripts": {
@@ -8,11 +8,11 @@
     "render-cloud": "node server/cloud_executor.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "googleapis": "^126.0.0",
+    "@googleapis/sheets": "^9.0.0",
+    "@googleapis/youtube": "^19.0.0",
     "puppeteer": "^21.0.0",
     "fluent-ffmpeg": "^2.1.2",
-    "csv-parser": "^3.0.0"
+    "csv-parser": "^3.0.0",
+    "node-fetch": "^2.7.0"
   }
 }

@@ -1,4 +1,6 @@
-const { google } = require('googleapis');
+const sheetsMod = require('@googleapis/sheets');
+const youtubeMod = require('@googleapis/youtube');
+const { google } = sheetsMod; // Google auth still comes from any sub-package
 const fs = require('fs');
 const path = require('path');
 
