@@ -160,22 +160,28 @@
                                 <div className="text-center">
                                     <div className="flex items-center gap-1 text-[#D4AF37] font-bold">
                                         <span className="text-xs">👁️</span>
-                                        <span className="text-sm">{Number(stats.views).toLocaleString() || '--'}</span>
+                                        <span className="text-sm">
+                                            {(!stats.views || isNaN(Number(stats.views))) ? '...' : Number(stats.views).toLocaleString()}
+                                        </span>
                                     </div>
                                     <p className="text-[8px] uppercase tracking-tighter opacity-30">Vistas</p>
                                 </div>
                                 <div className="text-center">
                                     <div className="flex items-center gap-1 text-[#D4AF37] font-bold">
                                         <span className="text-xs">❤️</span>
-                                        <span className="text-sm">{Number(stats.subs).toLocaleString() || '--'}</span>
+                                        <span className="text-sm">
+                                            {(!stats.subs || isNaN(Number(stats.subs))) ? '...' : Number(stats.subs).toLocaleString()}
+                                        </span>
                                     </div>
                                     <p className="text-[8px] uppercase tracking-tighter opacity-30">Subs</p>
                                 </div>
                             </div>
                         </div>
                         <div className="mt-3 flex items-center gap-2">
-                             <div className="w-2 h-2 rounded-full bg-green-500 activity-pulse"></div>
-                             <span className="text-[9px] text-white/30 uppercase tracking-widest">En vivo: Impacto Global de tu Música</span>
+                             <div className={`w-2 h-2 rounded-full ${(!stats.views || isNaN(Number(stats.views))) ? 'bg-orange-500' : 'bg-green-500'} activity-pulse`}></div>
+                             <span className="text-[9px] text-white/30 uppercase tracking-widest">
+                                {(!stats.views || isNaN(Number(stats.views))) ? 'Esperando datos del Robot...' : 'En vivo: Impacto Global de tu Música'}
+                             </span>
                         </div>
                     </div>
 

@@ -7,6 +7,7 @@ on:
 jobs:
   renderizar_y_subir:
     runs-on: ubuntu-latest
+    timeout-minutes: 15 # SEGURIDAD: Nunca más de 15 minutos
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -25,7 +26,9 @@ jobs:
       - name: Install Project Dependencies
         env:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
-        run: npm install --no-audit --no-fund
+        run: |
+          npm config set loglevel error
+          npm install --no-audit --no-fund --prefer-offline
 
       - name: Create Work Directories
         run: mkdir -p temp output
