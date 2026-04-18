@@ -8,31 +8,28 @@ async function runEngine() {
     console.log(`🚀 [CLOUD ENGINE] Iniciando producción para: ${SONG_ID || 'PENDIENTE'}`);
 
     try {
-        // 1. Obtener Datos de la Canción
+        // 1. Obtener Datos
         const songs = await getAllSongs();
         const song = songs.find(s => s.id === SONG_ID) || songs.find(s => s.status === 'pending');
-        if (!song) throw new Error('No hay canciones pendientes para producir.');
+        if (!song) throw new Error('No hay canciones pendientes.');
 
         const landscapes = await getLandscapes();
         const landscape = landscapes.find(l => l.status === 'pending');
         if (!landscape) throw new Error('No hay paisajes disponibles.');
 
-        // 2. Obtener Fundamento Bíblico (Hoja 4)
-        console.log(`📖 Buscando fundamento teológico para: ${song.title}...`);
+        // 2. Fundamento y IA Minimalista
+        console.log(`📖 Analizando teología para: ${song.title}...`);
         const theologyContext = await getSongTheology(song.title);
-
-        // 3. IA Gemini con Contexto de composición
-        console.log(`🎬 Generando mensaje espiritual...`);
         const aiResponse = await generateAIContent(song.title, theologyContext);
         
-        // 4. Mapeo para la Plantilla v8.1/v9.0
+        // 3. Mapeo Minimalista v10.0
         const row = {
-            quote: aiResponse.message,    // Reflexión
-            complement: aiResponse.tags,  // Tags
-            verse: aiResponse.verse       // EL VERSÍCULO (Original o sugerido)
+            quote: aiResponse.message,    // Solo la reflexión (Grande)
+            complement: "",               // Sin hashtags en el video
+            verse: aiResponse.citation    // Solo la CITA BÍBLICA (ej: Salmos 23:1)
         };
 
-        // 5. Renderizado Masterpiece
+        // 4. Renderizado Masterpiece
         await renderShort({
             id: song.id,
             inputVideo: landscape.url,
@@ -42,22 +39,19 @@ async function runEngine() {
             verse: row.verse
         });
 
-        // 6. Subida a YouTube
+        // 5. Subida a YouTube (Aquí sí mantenemos los hashtags)
         const finalVideoPath = path.join(__dirname, '..', 'output', 'SHORT_MASTERPIECE_ANIMATED_LOGO.mp4');
-        const ytDescription = `${aiResponse.verse}\n\n${aiResponse.message}\n\nEscucha la versión completa de "${song.title}" en nuestro canal.\n\n#EscuchaMusichris #Fe #Biblia #Worship`;
+        const ytDescription = `${aiResponse.citation}\n\n${aiResponse.message}\n\n${aiResponse.tags}`;
         const ytData = await uploadToYouTube(finalVideoPath, song.title, ytDescription);
 
-        // 7. Actualización de Estados
+        // 6. Estados y Radar
         await updateShortStatus(landscape.rowIndex, 'done', ytData.id, song.title);
-
-        // 8. Radar de Impacto
         try {
-            console.log('📊 Actualizando Radar de Impacto...');
             const stats = await getChannelStats();
             await updateChannelStats(stats);
-        } catch (e) { console.error('⚠️ Error actualizando Radar:', e.message); }
+        } catch (e) {}
 
-        console.log('✅ [CLOUD ENGINE] ¡Propósito cumplido con base bíblica!');
+        console.log('✅ [CLOUD ENGINE] ¡Short Minimalista v10.0 Completado!');
         process.exit(0);
     } catch (e) {
         console.error('❌ [CLOUD ENGINE] ERROR CRÍTICO:', e.message);
