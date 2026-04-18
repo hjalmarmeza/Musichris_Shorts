@@ -1,0 +1,36 @@
+name: MusiChris Production Engine
+
+on:
+  repository_dispatch:
+    types: [render_short]
+
+jobs:
+  render_and_upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libnss3 libatk-bridge2.0-0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2
+
+      - name: Install Project Dependencies
+        run: npm install
+
+      - name: Restore Google Credentials
+        run: |
+          echo "${{ secrets.GOOGLE_CREDENTIALS_BASE64 }}" | base64 -d > credentials.json
+          echo "${{ secrets.GOOGLE_TOKEN_BASE64 }}" | base64 -d > token.json
+        
+      - name: Run Production Engine
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SONG_ID: ${{ github.event.client_payload.songId }}
+        run: node server/cloud_executor.js
