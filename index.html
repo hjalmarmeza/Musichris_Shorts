@@ -15,12 +15,12 @@
             font-family: 'Inter', sans-serif; 
             color: #F5F5DC; 
             min-height: 100vh;
-            overflow-x: hidden; /* Evitar el baile lateral */
+            overflow-x: hidden;
             width: 100vw;
         }
         .glass { 
-            background: rgba(255, 255, 255, 0.03); 
-            backdrop-filter: blur(10px); 
+            background: rgba(25, 25, 25, 0.8); 
+            backdrop-filter: blur(20px); 
             border: 1px solid rgba(255, 255, 255, 0.05); 
         }
         .serif { font-family: 'Playfair Display', serif; }
@@ -28,16 +28,26 @@
             background: linear-gradient(135deg, #D4AF37 0%, #B58D1E 100%);
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.1);
         }
-        /* Estilo para el scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.2); border-radius: 10px; }
+        .drawer {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 50;
+        }
+        .drawer-open { transform: translateX(0); }
+        .drawer-closed { transform: translateX(100%); }
+        
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+        }
+        .activity-pulse { animation: pulse-gold 2s infinite; }
     </style>
 </head>
 <body class="antialiased">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
         const REPO_OWNER = 'hjalmarmeza';
         const REPO_NAME = 'Musichris_Shorts';
@@ -49,7 +59,10 @@
             const [log, setLog] = useState([]);
             const [pat, setPat] = useState(localStorage.getItem('gh_pat') || '');
             const [isConfiguring, setIsConfiguring] = useState(!localStorage.getItem('gh_pat'));
+            const [isLogOpen, setIsLogOpen] = useState(false);
             const [status, setStatus] = useState('IDLE');
+            const [hasNewActivity, setHasNewActivity] = useState(false);
+            const logEndRef = useRef(null);
 
             useEffect(() => {
                 fetch(CSV_URL)
@@ -68,13 +81,20 @@
                     });
             }, []);
 
+            useEffect(() => {
+                if (isLogOpen) {
+                    setHasNewActivity(false);
+                    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, [log, isLogOpen]);
+
             const triggerAction = async (songId) => {
                 if (!pat) {
                     setIsConfiguring(true);
                     return;
                 }
                 setStatus('WORKING');
-                setLog(prev => [`🚀 Lanzando: ${songId}`, ...prev]);
+                addLog(`🚀 Lanzando: ${songId}`);
                 try {
                     const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/dispatches`, {
                         method: 'POST',
@@ -84,16 +104,21 @@
                         },
                         body: JSON.stringify({ event_type: 'render_short', client_payload: { songId } })
                     });
-                    if (response.ok) setLog(prev => [`✅ Petición recibida por GitHub. Renderizando...`, ...prev]);
-                    else throw new Error("Acceso denegado. Revisa tu Token.");
-                } catch (err) { setLog(prev => [`❌ ${err.message}`, ...prev]); }
+                    if (response.ok) addLog(`✅ GitHub recibió la orden.`);
+                    else throw new Error("Error de acceso.");
+                } catch (err) { addLog(`❌ ${err.message}`); }
                 setStatus('IDLE');
             };
 
+            const addLog = (msg) => {
+                setLog(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev]);
+                if (!isLogOpen) setHasNewActivity(true);
+            };
+
             return (
-                <div className="w-full max-w-md mx-auto px-4 py-8">
+                <div className="w-full max-w-md mx-auto px-4 py-8 pb-20">
                     <header className="mb-8 flex justify-between items-end">
-                        <div className="animate-pulse-slow">
+                        <div>
                             <h1 className="serif text-3xl text-[#D4AF37] leading-none mb-1">MusiChris</h1>
                             <p className="text-[10px] uppercase tracking-[3px] text-white/30 font-bold">Cloud Control</p>
                         </div>
@@ -101,12 +126,12 @@
                     </header>
 
                     {isConfiguring && (
-                        <div className="glass p-6 rounded-2xl mb-8 border-[#D4AF37]/20 shadow-2xl">
+                        <div className="glass p-6 rounded-2xl mb-8 border-[#D4AF37]/20 shadow-2xl relative z-10">
                             <h3 className="serif text-lg mb-2">Token de Seguridad</h3>
                             <input 
                                 type="password" 
                                 placeholder="Pega aquí tu ghp_..."
-                                className="w-full bg-black/60 border border-white/5 rounded-xl p-4 text-sm mb-4 outline-none focus:border-[#D4AF37]/50"
+                                className="w-full bg-black/60 border border-white/5 rounded-xl p-4 text-sm mb-4 outline-none focus:border-[#D4AF37]/50 text-white"
                                 value={pat}
                                 onChange={(e) => setPat(e.target.value)}
                             />
@@ -114,44 +139,69 @@
                         </div>
                     )}
 
-                    <div className="space-y-6">
-                        <div className="flex justify-between items-center px-1">
-                            <h2 className="serif text-xl">Canciones</h2>
-                            <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-white/40">{songs.length} ITEMS</span>
-                        </div>
-                        
-                        <div className="grid gap-3">
-                            {songs.map(song => (
-                                <div key={song.id} className="glass p-4 rounded-xl flex items-center justify-between border-white/5">
-                                    <div className="overflow-hidden mr-4">
-                                        <h4 className="font-bold text-xs truncate leading-tight mb-1">{song.title}</h4>
-                                        <p className="text-[9px] opacity-20 uppercase tracking-tighter truncate">{song.album}</p>
-                                    </div>
-                                    <button 
-                                        disabled={status === 'WORKING'}
-                                        onClick={() => triggerAction(song.id)}
-                                        className="gold-button text-black shrink-0 px-4 py-2.5 rounded-lg font-bold text-[10px] transition-transform active:scale-90"
-                                    >
-                                        PRODUCIR
-                                    </button>
+                    <div className="space-y-3">
+                        {songs.map(song => (
+                            <div key={song.id} className="glass p-4 rounded-xl flex items-center justify-between border-white/5">
+                                <div className="overflow-hidden mr-4">
+                                    <h4 className="font-bold text-[13px] truncate leading-tight mb-1 text-white/90">{song.title}</h4>
+                                    <p className="text-[9px] opacity-30 uppercase tracking-tighter truncate">{song.album}</p>
                                 </div>
-                            ))}
-                        </div>
+                                <button 
+                                    disabled={status === 'WORKING'}
+                                    onClick={() => triggerAction(song.id)}
+                                    className="gold-button text-black shrink-0 px-5 py-2.5 rounded-lg font-black text-[10px] transition-transform active:scale-95 disabled:opacity-30"
+                                >
+                                    PRODUCIR
+                                </button>
+                            </div>
+                        ))}
+                    </div>
 
-                        <div className="glass p-5 rounded-2xl mt-8">
-                            <p className="text-[9px] font-bold text-white/20 uppercase mb-3 tracking-widest">Actividad del Sistema</p>
-                            <div className="h-28 overflow-y-auto space-y-2 text-[10px] font-mono pr-2">
-                                {log.length === 0 ? <p className="opacity-10 italic">Esperando órdenes...</p> : log.map((line, i) => (
-                                    <div key={i} className="text-white/40 border-l border-[#D4AF37]/50 pl-3 leading-relaxed animate-in fade-in slide-in-from-left-2 duration-500">
+                    {/* --- FLOATING LOG TAB --- */}
+                    <button 
+                        onClick={() => setIsLogOpen(true)}
+                        className={`fixed right-0 top-1/2 -translate-y-1/2 bg-[#D4AF37] text-black p-3 rounded-l-2xl shadow-2xl z-40 flex flex-col items-center gap-2 transition-all active:scale-90 ${hasNewActivity ? 'activity-pulse pr-6' : ''}`}
+                    >
+                        <span className="text-xs font-black [writing-mode:vertical-lr] rotate-180 uppercase tracking-widest">ACTIVIDAD</span>
+                        <span className="text-lg">📋</span>
+                    </button>
+
+                    {/* --- LOG DRAWER --- */}
+                    <div className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity duration-300 ${isLogOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsLogOpen(false)}>
+                        <div 
+                            className={`fixed right-0 top-0 bottom-0 w-4/5 max-w-sm glass border-l border-white/10 p-6 flex flex-col drawer ${isLogOpen ? 'drawer-open' : 'drawer-closed'}`}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="serif text-xl text-[#D4AF37]">Historial del Motor</h3>
+                                <button onClick={() => setIsLogOpen(false)} className="text-2xl opacity-50">✕</button>
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                                {log.length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center opacity-20 italic space-y-4">
+                                        <span className="text-4xl">📡</span>
+                                        <p className="text-sm">Sistema listo. Esperando comandos...</p>
+                                    </div>
+                                ) : log.map((line, i) => (
+                                    <div key={i} className="text-[11px] font-mono text-white/50 border-l-2 border-[#D4AF37]/40 pl-3 leading-relaxed py-1 animate-in slide-in-from-right duration-300">
                                         {line}
                                     </div>
                                 ))}
+                                <div ref={logEndRef} />
                             </div>
+                            
+                            <button 
+                                onClick={() => setLog([])} 
+                                className="mt-6 text-[10px] uppercase tracking-widest opacity-30 hover:opacity-100 text-center"
+                            >
+                                Limpiar historial
+                            </button>
                         </div>
                     </div>
-                    
-                    <footer className="mt-12 text-center opacity-10 text-[9px] tracking-[5px] uppercase">
-                        Masterpiece Engine v3.1
+
+                    <footer className="mt-12 text-center opacity-5 text-[9px] tracking-[5px] uppercase">
+                        Masterpiece Engine v3.2
                     </footer>
                 </div>
             );
