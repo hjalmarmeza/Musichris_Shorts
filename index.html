@@ -81,7 +81,7 @@
                             return {
                                 album: cells[0],
                                 title: cells[2],
-                                id: (cells[2] || '').toLowerCase().replace(/[^a-z0-9]/g, '_')
+                                id: (cells[2] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
                             };
                         }).filter(s => s.title);
                         setSongs(parsed);
