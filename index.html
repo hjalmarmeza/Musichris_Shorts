@@ -67,11 +67,11 @@
             const [isLogOpen, setIsLogOpen] = useState(false);
             const [status, setStatus] = useState('IDLE');
             const [hasNewActivity, setHasNewActivity] = useState(false);
-            const [stats, setStats] = useState({ views: '--', subs: '--' });
+            const [stats, setStats] = useState({ vistas: '0', subs: '0' });
             const logEndRef = useRef(null);
 
             useEffect(() => {
-                // Cargar Canciones
+                // Cargar Canciones con Status Real
                 fetch(CSV_URL)
                     .then(res => res.text())
                     .then(text => {
@@ -79,8 +79,9 @@
                         const parsed = lines.map(line => {
                             const cells = line.split(',').map(c => c.replace(/"/g, ''));
                             return {
-                                album: cells[0],
+                                album: cells[1],
                                 title: cells[2],
+                                status: (cells[4] || '').toLowerCase().trim(),
                                 id: (cells[2] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
                             };
                         }).filter(s => s.title);
@@ -94,7 +95,7 @@
                         const lines = text.split('\n');
                         if (lines.length > 1) {
                             const statsLine = lines[1].split(',').map(c => c.replace(/"/g, ''));
-                            setStats({ views: statsLine[0], subs: statsLine[1] });
+                            setStats({ vistas: statsLine[0] || '0', subs: statsLine[1] || '0' });
                         }
                     }).catch(err => console.error("Error cargando stats:", err));
             }, []);
@@ -158,22 +159,12 @@
                             </div>
                             <div className="flex gap-4">
                                 <div className="text-center">
-                                    <div className="flex items-center gap-1 text-[#D4AF37] font-bold">
-                                        <span className="text-xs">👁️</span>
-                                        <span className="text-sm">
-                                            {(!stats.views || isNaN(Number(stats.views))) ? '...' : Number(stats.views).toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <p className="text-[8px] uppercase tracking-tighter opacity-30">Vistas</p>
+                                    <p className="text-[14px] font-black text-white leading-none">{stats.vistas || '0'}</p>
+                                    <p className="text-[7px] uppercase tracking-wider text-white/30 mt-1">Vistas</p>
                                 </div>
                                 <div className="text-center">
-                                    <div className="flex items-center gap-1 text-[#D4AF37] font-bold">
-                                        <span className="text-xs">❤️</span>
-                                        <span className="text-sm">
-                                            {(!stats.subs || isNaN(Number(stats.subs))) ? '...' : Number(stats.subs).toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <p className="text-[8px] uppercase tracking-tighter opacity-30">Subs</p>
+                                    <p className="text-[14px] font-black text-white leading-none">{stats.subs || '0'}</p>
+                                    <p className="text-[7px] uppercase tracking-wider text-white/30 mt-1">Subs</p>
                                 </div>
                             </div>
                         </div>
@@ -201,19 +192,21 @@
 
                     <div className="space-y-3">
                         {songs.map(song => (
-                             <div key={song.id} className="glass p-4 rounded-xl flex items-center justify-between border-white/5">
-                                <div className="overflow-hidden mr-4">
-                                    <h4 className="font-bold text-[13px] truncate leading-tight mb-1 text-white/90">{song.title}</h4>
-                                    <p className="text-[9px] opacity-30 uppercase tracking-tighter truncate">{song.album}</p>
+                             <div key={song.id} className="glass p-4 rounded-xl flex items-center justify-between border-white/5 relative">
+                                <div className="mr-4">
+                                    <h4 className="font-bold text-[14px] leading-tight mb-1 text-white/90 break-words">{song.title}</h4>
+                                    <p className="text-[9px] opacity-30 uppercase tracking-tighter">{song.album}</p>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <span className={`text-[8px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${song.status === 'done' ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-white/30'}`}>
-                                        {song.status === 'done' ? '✅ Hecho' : '⏳ Pendiente'}
-                                    </span>
+                                <div className="flex flex-col items-center gap-1">
+                                    {song.status === 'done' && (
+                                        <span className="text-[10px] font-black text-[#D4AF37] opacity-80 animate-pulse">
+                                            #{song.shortCount || '1'} SHORT
+                                        </span>
+                                    )}
                                     <button 
                                         disabled={status === 'WORKING'}
                                         onClick={() => triggerAction(song.id)}
-                                        className="gold-button text-black shrink-0 px-5 py-2.5 rounded-lg font-black text-[10px] transition-transform active:scale-95 disabled:opacity-30"
+                                        className="gold-button text-black shrink-0 px-4 py-2 rounded-lg font-black text-[10px] transition-transform active:scale-95 disabled:opacity-30"
                                     >
                                         PRODUCIR
                                     </button>
