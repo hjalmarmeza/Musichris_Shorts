@@ -201,18 +201,23 @@
 
                     <div className="space-y-3">
                         {songs.map(song => (
-                            <div key={song.id} className="glass p-4 rounded-xl flex items-center justify-between border-white/5">
+                             <div key={song.id} className="glass p-4 rounded-xl flex items-center justify-between border-white/5">
                                 <div className="overflow-hidden mr-4">
                                     <h4 className="font-bold text-[13px] truncate leading-tight mb-1 text-white/90">{song.title}</h4>
                                     <p className="text-[9px] opacity-30 uppercase tracking-tighter truncate">{song.album}</p>
                                 </div>
-                                <button 
-                                    disabled={status === 'WORKING'}
-                                    onClick={() => triggerAction(song.id)}
-                                    className="gold-button text-black shrink-0 px-5 py-2.5 rounded-lg font-black text-[10px] transition-transform active:scale-95 disabled:opacity-30"
-                                >
-                                    PRODUCIR
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    <span className={`text-[8px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${song.status === 'done' ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-white/30'}`}>
+                                        {song.status === 'done' ? '✅ Hecho' : '⏳ Pendiente'}
+                                    </span>
+                                    <button 
+                                        disabled={status === 'WORKING'}
+                                        onClick={() => triggerAction(song.id)}
+                                        className="gold-button text-black shrink-0 px-5 py-2.5 rounded-lg font-black text-[10px] transition-transform active:scale-95 disabled:opacity-30"
+                                    >
+                                        PRODUCIR
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>

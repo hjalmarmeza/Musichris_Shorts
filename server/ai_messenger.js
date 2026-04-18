@@ -17,10 +17,10 @@ async function generateAIContent(songTitle, theologyContext = null) {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const model = "gemini-1.5-flash";
     
-    // El prompt ahora se enfoca en MINISTERIAL/ALIENTO, no en publicidad.
+    // El prompt ahora se enfoca en MINISTERIAL/ALIENTO, con variedad garantizada.
     let instructions = `Actúa como un pastor que brinda aliento. Para el tema "${songTitle}", genera un JSON con:
     1. "citation": La referencia bíblica corta.
-    2. "message": Un mensaje de ESPERANZA y VIDA corto (máximo 100 caracteres). NO menciones "escucha la canción". Habla directamente al corazón del afligido.
+    2. "message": Una reflexión de ESPERANZA NUEVA y ÚNICA (máximo 100 caracteres). NO repitas frases comunes.
     3. "tags": 3 hashtags de fe.
     Responde UNICAMENTE JSON.`;
 
@@ -29,7 +29,7 @@ async function generateAIContent(songTitle, theologyContext = null) {
         
         Tu tarea:
         1. "citation": Usa EXACTAMENTE "${theologyContext.verse}".
-        2. "message": Basándote en ese versículo, escribe una frase de ALIENTO y ESPERANZA para alguien que necesita una palabra de Dios hoy. Que sea profunda, tierna y motivadora (máx. 100 caracteres). Olvida que es una canción, enfócate en el MENSAJE de vida.
+        2. "message": Basándote en ese versículo, escribe una reflexión de esperanza TOTALMENTE NUEVA y DIFERENTE a interpretaciones previas. Que sea profunda y motivadora (máx. 100 caracteres).
         3. "tags": 3 hashtags basados en "${theologyContext.thematic}".
         Responde UNICAMENTE JSON.`;
     }

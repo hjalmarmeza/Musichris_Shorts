@@ -262,7 +262,7 @@ async function updateChannelStats(stats) {
     ];
 
     await sheets.spreadsheets.values.update({
-        spreadsheetId: SPREADSHEET_ID,
+        spreadsheetId: DB_SHEET_ID,
         range: 'stats!A1',
         valueInputOption: 'RAW',
         resource: { values }
