@@ -1,31 +1,37 @@
 const fetch = require('node-fetch');
 
+// Plantillas de Respaldo con Citas Bíblicas Reales y Poderosas
 const FALLBACK_TEMPLATES = [
     {
-        msg: "La profundidad de '{song}' nos invita a un momento de reflexión y paz interior. Deja que esta melodía renueve tu fe hoy.",
-        tags: "#Reflexion #MusicaCristiana #Paz"
+        verse: "Porque yo sé los pensamientos que tengo acerca de vosotros, dice Jehová, pensamientos de paz, y no de mal. (Jeremías 29:11)",
+        msg: "En cada nota de '{song}' resuena la promesa de que Dios tiene un plan perfecto para tu vida. Déjate guiar por Su paz hoy.",
+        tags: "#Fe #Jeremias2911 #MusicaCristiana"
     },
     {
-        msg: "Descubre la esperanza escondida en cada nota de '{song}'. Un mensaje vital para recordar que no estamos solos en el camino.",
-        tags: "#Esperanza #DiosEsBueno #MusiChris"
+        verse: "Todo lo puedo en Cristo que me fortalece. (Filipenses 4:13)",
+        msg: "Al escuchar '{song}', recuerda que no caminas solo. Con Su fuerza, no hay montaña que no puedas escalar.",
+        tags: "#Fortaleza #Filipenses413 #Victoria"
     },
     {
-        msg: "En los acordes de '{song}' encontramos un refugio para el alma cansada. Una pausa necesaria para reconectar con lo eterno.",
-        tags: "#Adoracion #Fe #Descanso"
+        verse: "Jehová es mi pastor; nada me faltará. (Salmo 23:1)",
+        msg: "Deja que la melodía de '{song}' sea un refugio para tu alma. Él te guía hacia aguas de reposo y renueva tus fuerzas.",
+        tags: "#Salmo23 #PazOriginal #Adoracion"
     },
     {
-        msg: "A veces una canción dice lo que el corazón calla. '{song}' es ese puente hacia una conversación más profunda con el Creador.",
-        tags: "#Corazon #MensajeDeFe #Musica"
+        verse: "Mas el Dios de toda gracia, que nos llamó a su gloria eterna en Jesucristo, os perfeccione y fortalezca. (1 Pedro 5:10)",
+        msg: "La canción '{song}' es un recordatorio de Su gracia infinita. Dios está perfeccionando Su obra maestra en ti.",
+        tags: "#Gracia #1Pedro #Esperanza"
     }
 ];
 
 async function generateAIContent(songTitle) {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const model = "gemini-1.5-flash";
-    const prompt = `Actúa como un experto en reflexión espiritual y música. Para la canción titulada "${songTitle}", genera un objeto JSON con:
-    1. "title": El título de la canción en mayúsculas.
-    2. "message": Una frase inspiracional y profunda (máximo 150 caracteres) que hable sobre la fe, la esperanza o el amor, inspirada en el título.
-    3. "tags": 3 hashtags relevantes.
+    const prompt = `Actúa como un pastor y experto en música de adoración. Para la canción titulada "${songTitle}", genera un objeto JSON con:
+    1. "title": Título en mayúsculas.
+    2. "verse": Una CITA BÍBLICA RELEVANTE (Versículo y Referencia) que conecte con el título.
+    3. "message": Una pequeña reflexión motivadora basada en ese versículo y la canción (máximo 120 caracteres).
+    4. "tags": 3 hashtags bíblicos/musicales.
     Responde UNICAMENTE el objeto JSON puro.`;
 
     try {
@@ -48,13 +54,11 @@ async function generateAIContent(songTitle) {
         return JSON.parse(jsonStr);
 
     } catch (e) {
-        console.error(`[AI-BACKUP] Usando Generador Dinámico para: ${songTitle}`);
-        
-        // Seleccionar una plantilla aleatoria para que no se repitan
+        console.error(`[AI-SPIRITUAL-BACKUP] Usando Sabiduría Bíblica para: ${songTitle}`);
         const template = FALLBACK_TEMPLATES[Math.floor(Math.random() * FALLBACK_TEMPLATES.length)];
-        
         return {
             title: songTitle.toUpperCase(),
+            verse: template.verse,
             message: template.msg.replace('{song}', songTitle),
             tags: template.tags
         };
