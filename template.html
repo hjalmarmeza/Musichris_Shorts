@@ -63,8 +63,23 @@
         .footer-tag { font-family: var(--font-sans); letter-spacing: 6px; font-size: 20px; opacity: 0.4; font-weight: 300; }
 
         /* --- OUTRO EVOLUCIONADO --- */
-        #outro { display: none; flex-direction: column; align-items: center; justify-content: center; color: var(--cream-color); }
-        .logo-circle-hole { width: 330px; height: 330px; border-radius: 50%; border: 4px solid var(--cream-color); margin-bottom: 60px; box-shadow: 0 0 50px rgba(245, 245, 220, 0.2); }
+        #outro { 
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start; /* Cambio a inicio fijo */
+            color: var(--cream-color);
+            padding-top: 600px; /* Coordenada exacta para FFmpeg */
+        }
+        .logo-circle-hole { 
+            width: 330px; 
+            height: 330px; 
+            border-radius: 50%; 
+            border: 5px solid var(--cream-color); 
+            margin-bottom: 60px; 
+            box-shadow: 0 0 50px rgba(245, 245, 220, 0.2); 
+            box-sizing: border-box;
+        }
         .channel-name { font-family: var(--font-serif); font-size: 78px; font-weight: 700; margin-bottom: 20px; }
         
         .cta-container { display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 30px; }

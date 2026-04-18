@@ -223,9 +223,9 @@ async function renderShort(row) {
     let filter = `[0:v]setpts=${ptsFactor}*PTS,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,`;
     filter += `eq=brightness=-0.1:contrast=1.1,vignette=angle=0.5,format=yuv420p[bg];`;
     
-    // Process Animated Logo: Scale, Crop to circle
-    filter += `[2:v]scale=320:320:force_original_aspect_ratio=increase,crop=320:320,setsar=1[logo_s];`;
-    filter += `[logo_s]geq=lum='p(X,Y)':a='if(gt(sqrt(pow(X-160,2)+pow(Y-160,2)),160),0,255)'[logo_final];`;
+    // Process Animated Logo: Scale, Crop to circle (330px)
+    filter += `[2:v]scale=330:330:force_original_aspect_ratio=increase,crop=330:330,setsar=1[logo_s];`;
+    filter += `[logo_s]geq=lum='p(X,Y)':a='if(gt(sqrt(pow(X-165,2)+pow(Y-165,2)),165),0,255)'[logo_final];`;
 
     let lastV = 'bg';
     frames.forEach((f, i) => {
@@ -235,10 +235,9 @@ async function renderShort(row) {
         // Normal overlay of UI screenshots
         filter += `[${lastV}][${i + 3}:v]overlay=0:0:enable='between(t,${f.startTime.toFixed(2)},${nextTime.toFixed(2)})'`;
         
-        // SPECIAL LOGIC: If we are in the Outro Phase, overlay the Animated Logo ABOVE the background but BELOW the UI (or above everything if positioned correctly)
         if (f.startTime >= CONFIG.outroStartTime) {
-            // Updated Y from 800 to 630 to align with the template's vertical center
-            filter += `[base${i}];[base${i}][logo_final]overlay=380:630:enable='between(t,${f.startTime.toFixed(2)},${nextTime.toFixed(2)})'[${currentV}];`;
+            // Updated X:375 e Y:600 para coincidencia total con template.html v12
+            filter += `[base${i}];[base${i}][logo_final]overlay=375:600:enable='between(t,${f.startTime.toFixed(2)},${nextTime.toFixed(2)})'[${currentV}];`;
         } else {
             filter += `[${currentV}];`;
         }
