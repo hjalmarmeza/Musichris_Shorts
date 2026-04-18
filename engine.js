@@ -4,9 +4,10 @@ const csv = require('csv-parser');
 const { spawnSync, execSync } = require('child_process');
 const puppeteer = require('puppeteer');
 
+const FFMPEG_PATH = fs.existsSync('/opt/homebrew/bin/ffmpeg') ? '/opt/homebrew/bin/ffmpeg' : 'ffmpeg';
+const FFPROBE_PATH = fs.existsSync('/opt/homebrew/bin/ffprobe') ? '/opt/homebrew/bin/ffprobe' : 'ffprobe';
+
 const CONFIG = {
-    ffmpegPath: '/opt/homebrew/bin/ffmpeg',
-    ffprobePath: '/opt/homebrew/bin/ffprobe',
     tempDir: path.join(__dirname, 'temp'),
     outputDir: path.join(__dirname, 'output'),
     templatePath: path.join(__dirname, 'template.html'),
@@ -31,7 +32,7 @@ function init() {
 
 function getVideoDuration(filePath) {
     try {
-        const cmd = `"${CONFIG.ffprobePath}" -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`;
+        const cmd = `"${FFPROBE_PATH}" -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`;
         return parseFloat(execSync(cmd).toString().trim());
     } catch (e) { return CONFIG.targetDuration; }
 }
@@ -244,11 +245,12 @@ async function renderShort(row) {
     args.push('-c:v', 'libx264', '-c:a', 'aac', '-shortest', '-t', CONFIG.targetDuration.toString(), '-pix_fmt', 'yuv420p', '-crf', '18', finalPath);
 
     console.log('[ENGINE] Running FFMPEG...');
-    const result = spawnSync(CONFIG.ffmpegPath, args, { encoding: 'utf8' });
-    console.log('[ENGINE] FFMPEG Finished with status:', result.status);
+    const result = spawnSync(FFMPEG_PATH, args);
+    console.log(`[ENGINE] FFMPEG Finished with status: ${result.status}`);
+    
     if (result.status !== 0) {
-        console.error('[ENGINE] FFMPEG Error output:', result.stderr);
-        throw new Error(result.stderr);
+        console.error(`[ENGINE] FFMPEG Error output:`, result.stderr?.toString());
+        throw new Error(`FFMPEG falló con código ${result.status}`);
     }
     console.log(`[SUCCESS] Masterpiece with ANIMATED LOGO generated!`);
 }

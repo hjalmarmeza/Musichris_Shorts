@@ -26,6 +26,13 @@ async function generateAIContent(title, album) {
         });
 
         const data = await response.json();
+        
+        // Validación de seguridad para la respuesta de Gemini
+        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+            console.error('⚠️ Respuesta de Gemini incompleta o bloqueada:', JSON.stringify(data));
+            throw new Error('Formato de respuesta inválido');
+        }
+
         const jsonStr = data.candidates[0].content.parts[0].text;
         return JSON.parse(jsonStr);
     } catch (e) {
