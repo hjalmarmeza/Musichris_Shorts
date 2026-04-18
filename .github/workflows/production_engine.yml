@@ -19,10 +19,13 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg libnss3 libatk-bridge2.0-0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2
+          sudo apt-get install -y ffmpeg libnss3 libatk-bridge2.0-0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2t64 libpango-1.0-0 libxshmfence1 libatk1.0-0 libcups2
 
       - name: Install Project Dependencies
         run: npm install
+
+      - name: Create Work Directories
+        run: mkdir -p temp output
 
       - name: Restore Google Credentials
         run: |
