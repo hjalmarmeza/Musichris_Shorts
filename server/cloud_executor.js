@@ -25,18 +25,20 @@ async function runEngine() {
         // 2. IA Gemini
         const message = await generateAIContent(song.title, song.album);
 
-        // 3. Renderizado
+        // 3. Renderizado - Mapeo de los campos de la IA al Motor
         console.log('🎬 Empezando renderizado en la nube...');
         await renderShort({
             id: song.id,
             inputVideo: landscape.url,
             audioUrl: song.audioUrl,
-            ...message
+            quote: message.message,
+            complement: message.tags,
+            verse: message.title
         });
 
         // 4. Subida a YouTube
         const finalVideoPath = path.join(__dirname, '..', 'output', 'SHORT_MASTERPIECE_ANIMATED_LOGO.mp4');
-        const ytDescription = `${message.quote}\n\nEscucha ${song.title} completa en nuestro perfil.\n\n${message.verse}`;
+        const ytDescription = `${message.message}\n\nEscucha ${song.title} completa en nuestro perfil.\n\n${message.title}`;
         const ytData = await uploadToYouTube(finalVideoPath, song.title, ytDescription);
 
         // 5. Actualizar Sheet
