@@ -1,0 +1,13 @@
+# Secretos de Google (¡NUNCA SUBIR!)
+token.json
+credentials.json
+.env
+
+# Carpetas de trabajo (Pesadas)
+node_modules/
+temp/
+output/
+
+# Archivos de sistema
+.DS_Store
+*.log
