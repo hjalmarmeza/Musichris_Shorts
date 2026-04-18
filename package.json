@@ -1,6 +1,6 @@
 {
   "name": "musichris-shorts-engine",
-  "version": "2.3.0",
+  "version": "2.5.0",
   "description": "Automated YouTube Shorts Production Engine",
   "main": "server/app.js",
   "scripts": {
@@ -10,6 +10,8 @@
   "dependencies": {
     "@googleapis/sheets": "^9.0.0",
     "@googleapis/youtube": "^19.0.0",
+    "@googleapis/drive": "^8.0.0",
+    "google-auth-library": "^9.0.0",
     "puppeteer-core": "^21.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "csv-parser": "^3.0.0",

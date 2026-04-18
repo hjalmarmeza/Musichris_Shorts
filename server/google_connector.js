@@ -1,6 +1,7 @@
-const sheetsMod = require('@googleapis/sheets');
-const youtubeMod = require('@googleapis/youtube');
-const { google } = sheetsMod; // Google auth still comes from any sub-package
+const { sheets: googleSheets } = require('@googleapis/sheets');
+const { youtube: googleYoutube } = require('@googleapis/youtube');
+const { drive: googleDrive } = require('@googleapis/drive');
+const { OAuth2Client } = require('google-auth-library');
 const fs = require('fs');
 const path = require('path');
 
@@ -12,15 +13,15 @@ const SHORTS_SHEET_ID = '17vd4F5yhQUPYFOO6ZR6uNkBwlq2BuJRNFO9SN-ViN5Y';
 async function getAuth() {
     const content = fs.readFileSync(CREDENTIALS_PATH);
     const { client_secret, client_id, redirect_uris } = JSON.parse(content).installed;
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-    oAuth2Client.setCredentials(JSON.parse(fs.readFileSync(TOKEN_PATH)));
-    return oAuth2Client;
+    const auth = new OAuth2Client(client_id, client_secret, redirect_uris[0]);
+    auth.setCredentials(JSON.parse(fs.readFileSync(TOKEN_PATH)));
+    return auth;
 }
 
 // Get all songs from DB_Musichris_app Hoja 2
 async function getAllSongs() {
     const auth = await getAuth();
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = googleSheets({ version: 'v4', auth });
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: DB_SHEET_ID,
         range: 'Hoja 2!A:G'
@@ -43,7 +44,7 @@ async function getAllSongs() {
 // Get available landscapes from MusiChris Short sheet
 async function getLandscapes() {
     const auth = await getAuth();
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = googleSheets({ version: 'v4', auth });
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SHORTS_SHEET_ID,
         range: 'Hoja 1!A:E'
@@ -62,7 +63,7 @@ async function getLandscapes() {
 // Update Short status in MusiChris Short sheet
 async function updateShortStatus(rowIndex, status, youtubeId = '', songName = '') {
     const auth = await getAuth();
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = googleSheets({ version: 'v4', auth });
     await sheets.spreadsheets.values.update({
         spreadsheetId: SHORTS_SHEET_ID,
         range: `Hoja 1!C${rowIndex}:E${rowIndex}`,
@@ -77,7 +78,7 @@ async function updateShortStatus(rowIndex, status, youtubeId = '', songName = ''
 // Upload the rendered video to YouTube
 async function uploadToYouTube(videoPath, title, description) {
     const auth = await getAuth();
-    const youtube = google.youtube({ version: 'v3', auth });
+    const youtube = googleYoutube({ version: 'v3', auth });
     
     console.log('[YOUTUBE] Iniciando subida de video:', videoPath);
     
@@ -112,8 +113,8 @@ async function uploadToYouTube(videoPath, title, description) {
 // NUEVO: Sincronizar carpeta de Drive con el Sheet de Paisajes
 async function syncDriveFolderToSheet(folderId) {
     const auth = await getAuth();
-    const drive = google.drive({ version: 'v3', auth });
-    const sheets = google.sheets({ version: 'v4', auth });
+    const drive = googleDrive({ version: 'v3', auth });
+    const sheets = googleSheets({ version: 'v4', auth });
 
     console.log(`[DRIVE] Escaneando carpeta: ${folderId}...`);
     
@@ -148,7 +149,7 @@ async function syncDriveFolderToSheet(folderId) {
 // Función para cambiar la privacidad del video (De Oculto a Público)
 async function setVideoPublic(videoId) {
     const auth = await getAuth();
-    const youtube = google.youtube({ version: 'v3', auth });
+    const youtube = googleYoutube({ version: 'v3', auth });
 
     console.log(`[YOUTUBE] Publicando video ID: ${videoId}...`);
     
@@ -194,7 +195,7 @@ async function downloadDriveFile(fileId, outputPath) {
 
 async function getChannelStats() {
     const auth = await getAuth();
-    const youtube = google.youtube({ version: 'v3', auth });
+    const youtube = googleYoutube({ version: 'v3', auth });
     const response = await youtube.channels.list({
         part: 'statistics',
         id: 'UC_k6DDoPbVtsHd6ovucBbVA'
@@ -205,7 +206,7 @@ async function getChannelStats() {
 async function updateChannelStats(stats) {
     if (!stats) return;
     const auth = await getAuth();
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = googleSheets({ version: 'v4', auth });
     
     const values = [
         ['views', 'subscribers', 'videos', 'lastUpdate'],
