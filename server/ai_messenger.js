@@ -1,46 +1,62 @@
-const API_KEY = process.env.GEMINI_API_KEY;
+const fetch = require('node-fetch');
 
-async function generateAIContent(title, album) {
+const FALLBACK_TEMPLATES = [
+    {
+        msg: "La profundidad de '{song}' nos invita a un momento de reflexión y paz interior. Deja que esta melodía renueve tu fe hoy.",
+        tags: "#Reflexion #MusicaCristiana #Paz"
+    },
+    {
+        msg: "Descubre la esperanza escondida en cada nota de '{song}'. Un mensaje vital para recordar que no estamos solos en el camino.",
+        tags: "#Esperanza #DiosEsBueno #MusiChris"
+    },
+    {
+        msg: "En los acordes de '{song}' encontramos un refugio para el alma cansada. Una pausa necesaria para reconectar con lo eterno.",
+        tags: "#Adoracion #Fe #Descanso"
+    },
+    {
+        msg: "A veces una canción dice lo que el corazón calla. '{song}' es ese puente hacia una conversación más profunda con el Creador.",
+        tags: "#Corazon #MensajeDeFe #Musica"
+    }
+];
+
+async function generateAIContent(songTitle) {
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    const model = "gemini-1.5-flash";
+    const prompt = `Actúa como un experto en reflexión espiritual y música. Para la canción titulada "${songTitle}", genera un objeto JSON con:
+    1. "title": El título de la canción en mayúsculas.
+    2. "message": Una frase inspiracional y profunda (máximo 150 caracteres) que hable sobre la fe, la esperanza o el amor, inspirada en el título.
+    3. "tags": 3 hashtags relevantes.
+    Responde UNICAMENTE el objeto JSON puro.`;
+
     try {
-        console.log(`[AI-GEMINI] Solicitando reflexión profunda para: ${title}...`);
-        
-        const prompt = `Actúa como un mentor espiritual y experto en copywriting para YouTube Shorts. 
-        Canción: "${title}"
-        Album: "${album}"
-        
-        Objetivo: Generar 3 textos cortos para un video de 30 segundos:
-        1. "quote": Una frase impactante sobre la fe, la esperanza o el propósito inspirada en el título.
-        2. "complement": Un mensaje corto pero profundo que anime al espectador.
-        3. "verse": Un versículo bíblico corto que pegue con el tema.
-        
-        RESPONDE ÚNICAMENTE EN FORMATO JSON PURO como este:
-        {"quote": "...", "complement": "...", "verse": "..."}`;
-
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { response_mime_type: "application/json" }
+                contents: [{ parts: [{ text: prompt }] }]
             })
         });
 
         const data = await response.json();
         
-        // Validación de seguridad para la respuesta de Gemini
         if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-            console.error('⚠️ Respuesta de Gemini incompleta o bloqueada:', JSON.stringify(data));
-            throw new Error('Formato de respuesta inválido');
+            throw new Error('Respuesta inválida de Gemini');
         }
 
-        const jsonStr = data.candidates[0].content.parts[0].text;
+        let jsonStr = data.candidates[0].content.parts[0].text;
+        jsonStr = jsonStr.replace(/```json|```/g, '').trim();
         return JSON.parse(jsonStr);
+
     } catch (e) {
-        console.error('[AI-ERROR] Falló Gemini, usando respaldo:', e.message);
+        console.error(`[AI-BACKUP] Usando Generador Dinámico para: ${songTitle}`);
+        
+        // Seleccionar una plantilla aleatoria para que no se repitan
+        const template = FALLBACK_TEMPLATES[Math.floor(Math.random() * FALLBACK_TEMPLATES.length)];
+        
         return {
-            quote: `Que la paz de Dios que sobrepasa todo entendimiento te guarde.`,
-            complement: `Escucha "${title}" y encuentra descanso para tu alma.`,
-            verse: 'Filipenses 4:7'
+            title: songTitle.toUpperCase(),
+            message: template.msg.replace('{song}', songTitle),
+            tags: template.tags
         };
     }
 }
