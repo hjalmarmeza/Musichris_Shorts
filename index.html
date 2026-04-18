@@ -42,15 +42,16 @@
                     .then(text => {
                         const lines = text.split('\n').filter(l => l.trim());
                         const parsed = lines.slice(1).map(line => {
-                            // Split robusto para CSV
                             const cells = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
                             const clean = cells.map(c => c.replace(/"/g, '').trim());
                             
-                            // DETECTOR INTELIGENTE: Buscamos qué columna NO es una URL y NO es un número ID
-                            // ITEM(0), ALBUM(1), TITULO(2), LINK(3), STATUS(4)
+                            // Registramos el conteo real: si no hay número, pero está en 'done', asumimos 1.
+                            const count = parseInt(clean[6]) || (clean[4] === 'done' ? 1 : 0);
+
                             return {
                                 album: clean[1] && !clean[1].includes('http') ? clean[1] : 'MusiChris',
                                 title: clean[2] || 'Sin Título',
+                                shortCount: count,
                                 status: (clean[4] || '').toLowerCase().trim(),
                                 id: (clean[2] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
                             };
@@ -102,8 +103,10 @@
                                     <h4 className="serif text-lg text-white font-bold leading-tight break-words">{song.title}</h4>
                                 </div>
                                 <div className="shrink-0 flex flex-col items-center gap-2">
-                                    {song.status === 'done' && (
-                                        <span className="text-[7px] font-black bg-[#D4AF37]/10 text-[#D4AF37] px-2 py-1 rounded-full border border-[#D4AF37]/20">PUBLICADO</span>
+                                    {song.shortCount > 0 && (
+                                        <div className="bg-[#D4AF37] text-black text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg">
+                                            #{song.shortCount} {song.shortCount === 1 ? 'SHORT' : 'SHORTS'}
+                                        </div>
                                     )}
                                     <button 
                                         disabled={status === 'WORKING'}

@@ -1,4 +1,4 @@
-const { getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, downloadDriveFile, getChannelStats, updateChannelStats, getSongTheology } = require('./google_connector');
+const { getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, downloadDriveFile, getChannelStats, updateChannelStats, getSongTheology, incrementSongShortCount, markSongAsDone } = require('./google_connector');
 const { generateAIContent } = require('./ai_messenger');
 const { renderShort } = require('../engine');
 const path = require('path');
@@ -44,14 +44,17 @@ async function runEngine() {
         const ytDescription = `${aiResponse.citation}\n\n${aiResponse.message}\n\n${aiResponse.tags}`;
         const ytData = await uploadToYouTube(finalVideoPath, song.title, ytDescription);
 
-        // 6. Estados y Radar
+        // 6. Estados, Contadores y Radar
         await updateShortStatus(landscape.rowIndex, 'done', ytData.id, song.title);
+        await incrementSongShortCount(song.rowIndex);
+        await markSongAsDone(song.rowIndex);
+        
         try {
             const stats = await getChannelStats();
             await updateChannelStats(stats);
         } catch (e) {}
 
-        console.log('✅ [CLOUD ENGINE] ¡Short Minimalista v10.0 Completado!');
+        console.log(`✅ [CLOUD ENGINE] ¡Short de "${song.title}" completado y contador actualizado!`);
         process.exit(0);
     } catch (e) {
         console.error('❌ [CLOUD ENGINE] ERROR CRÍTICO:', e.message);

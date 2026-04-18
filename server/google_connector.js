@@ -44,13 +44,12 @@ async function getAllSongs() {
     // Skip header row
     return rows.slice(1).map((r, i) => ({
         rowIndex: i + 2, // +2 because 1-indexed and skip header
-        album: r[0] || '',
-        albumImage: r[1] || '',
+        album: r[1] || 'MusiChris',
         title: r[2] || '',
         audioUrl: r[3] || '',
         status: r[4] || '',
         youtubeId: r[5] || '',
-        playlistId: r[6] || '',
+        shortCount: parseInt(r[7]) || 0,
         id: (r[2] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
     })).filter(s => s.title); // Only songs with a title
 }
@@ -269,8 +268,42 @@ async function updateChannelStats(stats) {
     });
 }
 
+async function incrementSongShortCount(rowIndex) {
+    const auth = await getAuth();
+    const sheets = googleSheets({ version: 'v4', auth });
+    
+    // Obtener valor actual
+    const res = await sheets.spreadsheets.values.get({
+        spreadsheetId: DB_SHEET_ID,
+        range: `Hoja 2!H${rowIndex}`
+    });
+    const currentCount = parseInt(res.data.values?.[0]?.[0]) || 0;
+    
+    // Incrementar y Guardar
+    await sheets.spreadsheets.values.update({
+        spreadsheetId: DB_SHEET_ID,
+        range: `Hoja 2!H${rowIndex}`,
+        valueInputOption: 'RAW',
+        resource: {
+            values: [[currentCount + 1]]
+        }
+    });
+    console.log(`[SHEETS] Contador Canción fila ${rowIndex} incrementado a: ${currentCount + 1}`);
+}
+
+async function markSongAsDone(rowIndex) {
+    const auth = await getAuth();
+    const sheets = googleSheets({ version: 'v4', auth });
+    await sheets.spreadsheets.values.update({
+        spreadsheetId: DB_SHEET_ID,
+        range: `Hoja 2!E${rowIndex}`,
+        valueInputOption: 'RAW',
+        resource: { values: [['done']] }
+    });
+}
+
 module.exports = { 
     getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, 
     syncDriveFolderToSheet, setVideoPublic, downloadDriveFile, getChannelStats,
-    updateChannelStats, getSongTheology
+    updateChannelStats, getSongTheology, incrementSongShortCount, markSongAsDone
 };
