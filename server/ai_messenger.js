@@ -3,18 +3,13 @@ const fetch = require('node-fetch');
 const FALLBACK_TEMPLATES = [
     {
         citation: "Jeremías 29:11",
-        msg: "En cada nota de '{song}' resuena la promesa de que Dios tiene un plan de paz para tu vida.",
-        tags: "#Fe #MusiChris #Worship"
+        msg: "Dios tiene pensamientos de paz para ti hoy. No temas, Su plan es devolverte la esperanza y un futuro lleno de Su luz.",
+        tags: "#Esperanza #Fe #DiosEsBueno"
     },
     {
         citation: "Filipenses 4:13",
-        msg: "Al escuchar '{song}', recuerda que no caminas solo. Su fuerza es tu motor hoy.",
-        tags: "#Fortaleza #Victoria #Cristo"
-    },
-    {
-        citation: "Salmo 23:1",
-        msg: "Deja que la melodía de '{song}' sea un refugio. Él te guía hacia aguas de reposo.",
-        tags: "#Paz #Salmo23 #Adoracion"
+        msg: "Aunque el camino sea difícil, Su fuerza te sostiene. Hoy puedes levantarte porque Cristo es quien te fortalece.",
+        tags: "#Fortaleza #Victoria #Aliento"
     }
 ];
 
@@ -22,18 +17,20 @@ async function generateAIContent(songTitle, theologyContext = null) {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const model = "gemini-1.5-flash";
     
-    let instructions = `Para la canción "${songTitle}", genera un JSON con:
-    1. "citation": Solo la referencia bíblica corta (Libro Capítulo:Versículo).
-    2. "message": Una frase motivadora muy breve (máximo 100 caracteres).
-    3. "tags": 3 hashtags.
+    // El prompt ahora se enfoca en MINISTERIAL/ALIENTO, no en publicidad.
+    let instructions = `Actúa como un pastor que brinda aliento. Para el tema "${songTitle}", genera un JSON con:
+    1. "citation": La referencia bíblica corta.
+    2. "message": Un mensaje de ESPERANZA y VIDA corto (máximo 100 caracteres). NO menciones "escucha la canción". Habla directamente al corazón del afligido.
+    3. "tags": 3 hashtags de fe.
     Responde UNICAMENTE JSON.`;
 
     if (theologyContext) {
-        instructions = `El autor compuso "${songTitle}" basado en: ${theologyContext.verse}.
-        Genera JSON con:
-        1. "citation": La referencia bíblica de ese verso (ej: Juan 3:16).
-        2. "message": Una reflexión breve sobre ese verso y la canción (máximo 100 caracteres).
-        3. "tags": 3 hashtags.
+        instructions = `Misión: Brindar aliento y vida. La canción "${songTitle}" se basa en: ${theologyContext.verse}.
+        
+        Tu tarea:
+        1. "citation": Usa EXACTAMENTE "${theologyContext.verse}".
+        2. "message": Basándote en ese versículo, escribe una frase de ALIENTO y ESPERANZA para alguien que necesita una palabra de Dios hoy. Que sea profunda, tierna y motivadora (máx. 100 caracteres). Olvida que es una canción, enfócate en el MENSAJE de vida.
+        3. "tags": 3 hashtags basados en "${theologyContext.thematic}".
         Responde UNICAMENTE JSON.`;
     }
 
@@ -51,7 +48,7 @@ async function generateAIContent(songTitle, theologyContext = null) {
 
     } catch (e) {
         const t = FALLBACK_TEMPLATES[Math.floor(Math.random() * FALLBACK_TEMPLATES.length)];
-        return { citation: t.citation, message: t.msg.replace('{song}', songTitle), tags: t.tags };
+        return { citation: t.citation, message: t.msg, tags: t.tags };
     }
 }
 
