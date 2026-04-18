@@ -9,6 +9,7 @@ const CREDENTIALS_PATH = path.join(__dirname, '..', 'credentials.json');
 const TOKEN_PATH = path.join(__dirname, '..', 'token.json');
 const DB_SHEET_ID = '19zXfIiAZktXXyixZ1HdcW1IO9bOBn8S8sRPZAXUVZbE';
 const SHORTS_SHEET_ID = '17vd4F5yhQUPYFOO6ZR6uNkBwlq2BuJRNFO9SN-ViN5Y';
+const THEOLOGY_SHEET_ID = '1oTVSF7CjrCtnk3pHdBIRE8gzhE9zKDM5NJFyWV-qsJs';
 
 async function getAuth() {
     try {
@@ -206,6 +207,40 @@ async function downloadDriveFile(fileId, outputPath) {
     });
 }
 
+async function getSongTheology(songTitle) {
+    try {
+        const auth = await getAuth();
+        const sheets = googleSheets({ version: 'v4', auth });
+        const res = await sheets.spreadsheets.values.get({
+            spreadsheetId: THEOLOGY_SHEET_ID,
+            range: 'Hoja 4!A:L'
+        });
+        const rows = res.data.values || [];
+        
+        // Normalización para búsqueda exacta sin fallos por tildes o espacios
+        const normalizedTarget = songTitle.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        
+        const found = rows.find(r => {
+            const rowTitle = (r[1] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+            return rowTitle === normalizedTarget;
+        });
+
+        if (found) {
+            console.log(`[THEO-SOURCE] ¡Base bíblica encontrada para: ${songTitle}!`);
+            return {
+                verse: found[2],    // Verso Bíblico / Pasaje
+                context: found[4],  // Contenido Bíblico
+                thematic: found[7]  // Temática Central
+            };
+        }
+        console.warn(`[THEO-SOURCE] No se encontró registro en Hoja 4 para: ${songTitle}`);
+        return null;
+    } catch (e) {
+        console.error('⚠️ Error leyendo Hoja de Teología:', e.message);
+        return null;
+    }
+}
+
 async function getChannelStats() {
     const auth = await getAuth();
     const youtube = googleYoutube({ version: 'v3', auth });
@@ -237,5 +272,5 @@ async function updateChannelStats(stats) {
 module.exports = { 
     getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, 
     syncDriveFolderToSheet, setVideoPublic, downloadDriveFile, getChannelStats,
-    updateChannelStats 
+    updateChannelStats, getSongTheology
 };

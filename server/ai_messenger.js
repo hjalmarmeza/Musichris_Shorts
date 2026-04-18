@@ -24,22 +24,38 @@ const FALLBACK_TEMPLATES = [
     }
 ];
 
-async function generateAIContent(songTitle) {
+async function generateAIContent(songTitle, theologyContext = null) {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const model = "gemini-1.5-flash";
-    const prompt = `Actúa como un pastor y experto en música de adoración. Para la canción titulada "${songTitle}", genera un objeto JSON con:
+    
+    let instructions = `Actúa como un pastor y experto en música de adoración. Para la canción "${songTitle}", genera un objeto JSON con:
     1. "title": Título en mayúsculas.
-    2. "verse": Una CITA BÍBLICA RELEVANTE (Versículo y Referencia) que conecte con el título.
-    3. "message": Una pequeña reflexión motivadora basada en ese versículo y la canción (máximo 120 caracteres).
-    4. "tags": 3 hashtags bíblicos/musicales.
+    2. "verse": Una CITA BÍBLICA RELEVANTE (Versículo y Referencia).
+    3. "message": Una pequeña reflexión motivadora basada en el versículo (máximo 120 caracteres).
+    4. "tags": 3 hashtags bíblicos.
     Responde UNICAMENTE el objeto JSON puro.`;
+
+    // INYECCIÓN DE VERDAD: Si tenemos contexto de la Hoja 4, forzamos a la IA a usarlo
+    if (theologyContext) {
+        instructions = `Actúa como un pastor y experto en música. El autor de la canción "${songTitle}" la compuso basándose en esta verdad:
+        - VERSÍCULO ORIGINAL: ${theologyContext.verse}
+        - CONTEXTO BÍBLICO: ${theologyContext.context}
+        - TEMÁTICA: ${theologyContext.thematic}
+
+        Genera un objeto JSON con:
+        1. "title": "${songTitle.toUpperCase()}".
+        2. "verse": "${theologyContext.verse}". (USA EXACTAMENTE ESTE VERSÍCULO)
+        3. "message": Una reflexión motivadora que conecte el versículo con la canción (máximo 120 caracteres).
+        4. "tags": 3 hashtags basados en la temática "${theologyContext.thematic}".
+        Responde UNICAMENTE el objeto JSON puro.`;
+    }
 
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
+                contents: [{ parts: [{ text: instructions }] }]
             })
         });
 
