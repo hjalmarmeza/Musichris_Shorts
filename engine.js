@@ -85,7 +85,10 @@ async function downloadMedia(url, outputPath) {
 }
 
 async function generateMasterpieceSequence(row, id) {
-    const { quote, complement, verse } = row;
+    const quote = row.quote || '';
+    const complement = row.complement || '';
+    const verse = row.verse || '';
+    
     const qLines = quote.split(/<br>|\n/).filter(l => l.trim() !== '');
     const cLines = complement ? complement.split(/<br>|\n/).filter(l => l.trim() !== '') : [];
     const overlays = [];
