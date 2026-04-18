@@ -182,7 +182,7 @@ async function setVideoPublic(videoId) {
 // NUEVO: Descarga nativa vía API para saltar avisos de virus y muros de Google
 async function downloadDriveFile(fileId, outputPath) {
     const auth = await getAuth();
-    const drive = google.drive({ version: 'v3', auth });
+    const drive = googleDrive({ version: 'v3', auth });
 
     console.log(`[DRIVE-API] Descargando archivo ID: ${fileId}...`);
     const dest = fs.createWriteStream(outputPath);
