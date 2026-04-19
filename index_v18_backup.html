@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MusiChris Master Control</title>
+    
+    <!-- Librerías de Visualización -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- CARGA DEL MOTOR PROTEGIDO (Toda la lógica está aquí) -->
+    <script src="app_logic.js"></script>
+
+    <style>
+        body { background: #050505; font-family: 'Inter', sans-serif; color: #F5F5DC; }
+        .serif { font-family: 'Playfair Display', serif; }
+        .glass { background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .gold-button { background: linear-gradient(135deg, #D4AF37 0%, #B58D1E 100%); transition: all 0.3s ease; }
+        .gold-button:active { transform: scale(0.95); opacity: 0.8; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.2); border-radius: 10px; }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden">
+    <div id="root"></div>
+
+    <!-- CÓDIGO DE INTERFAZ (Puedes llevar este bloque a Stitch para mejorar el diseño) -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const Engine = window.MusiChrisEngine; // Acceso al cerebro de la app
+
+        function App() {
+            const [songs, setSongs] = useState([]);
+            const [pat, setPat] = useState(Engine.getStoredPat());
+            const [isConfiguring, setIsConfiguring] = useState(!Engine.getStoredPat());
+            const [status, setStatus] = useState('IDLE');
+            const [log, setLog] = useState([]);
+            const [isLogOpen, setIsLogOpen] = useState(false);
+
+            useEffect(() => {
+                Engine.fetchCatalog().then(setSongs);
+            }, []);
+
+            const handleProduce = async (songId) => {
+                if (!pat) { setIsConfiguring(true); return; }
+                setStatus('WORKING');
+                const t = new Date().toLocaleTimeString();
+                setLog(p => [`[${t}] 🚀 Mandando orden: ${songId}`, ...p]);
+                
+                try {
+                    await Engine.produceShort(pat, songId);
+                    setLog(p => [`[${t}] ✅ Orden recibida en la nube.`, ...p]);
+                } catch (err) { 
+                    setLog(p => [`[${t}] ❌ Error: ${err.message}`, ...p]); 
+                }
+                setStatus('IDLE');
+            };
+
+            const toggleConfig = () => setIsConfiguring(!isConfiguring);
+
+            return (
+                <div className="w-full max-w-md mx-auto px-6 py-10 pb-32 min-h-screen">
+                    <header className="mb-10 flex justify-between items-center">
+                        <div>
+                            <h1 className="serif text-3xl text-[#D4AF37] leading-tight">MusiChris</h1>
+                            <p className="text-[9px] uppercase tracking-[4px] text-white/30 font-bold">Control Central</p>
+                        </div>
+                        <button onClick={toggleConfig} className="w-10 h-10 glass rounded-full flex items-center justify-center text-sm opacity-50 hover:opacity-100 transition-all">⚙️</button>
+                    </header>
+
+                    <div className="space-y-4">
+                        {songs.length === 0 ? (
+                            <div className="py-20 text-center opacity-20 italic">Cargando catálogo...</div>
+                        ) : songs.map(song => (
+                            <div key={song.id} className="glass p-5 rounded-2xl flex items-center justify-between group">
+                                <div className="flex-1 pr-4 min-w-0">
+                                    <p className="text-[10px] text-[#D4AF37] font-bold uppercase tracking-widest mb-1 opacity-40">{song.album}</p>
+                                    <h4 className="serif text-lg text-white font-bold leading-tight break-words">{song.title}</h4>
+                                </div>
+                                <div className="shrink-0 flex flex-col items-center gap-2">
+                                    {song.shortCount > 0 && (
+                                        <div className="bg-[#D4AF37] text-black text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg">
+                                            #{song.shortCount} {song.shortCount === 1 ? 'SHORT' : 'SHORTS'}
+                                        </div>
+                                    )}
+                                    <button 
+                                        disabled={status === 'WORKING'}
+                                        onClick={() => handleProduce(song.id)}
+                                        className="gold-button text-black px-4 py-3 rounded-xl font-black text-[10px] tracking-tighter"
+                                    >
+                                        PRODUCIR
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {isConfiguring && (
+                        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 flex items-center justify-center p-6">
+                            <div className="glass w-full max-w-sm p-8 rounded-3xl text-center">
+                                <h2 className="serif text-2xl mb-6">Vincular Motor</h2>
+                                <input 
+                                    type="password" 
+                                    placeholder="Token de GitHub"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm mb-4 outline-none focus:border-[#D4AF37]/50"
+                                    value={pat}
+                                    onChange={(e) => setPat(e.target.value)}
+                                />
+                                <button onClick={() => { Engine.storePat(pat); setIsConfiguring(false); }} className="w-full gold-button py-4 text-black font-black rounded-xl text-[10px] tracking-widest uppercase">ACTIVAR</button>
+                            </div>
+                        </div>
+                    )}
+
+                    <button onClick={() => setIsLogOpen(true)} className="fixed bottom-6 right-6 w-14 h-14 bg-[#D4AF37] text-black rounded-full shadow-2xl flex items-center justify-center text-xl z-40 active:scale-90 transition-all">📋</button>
+
+                    {isLogOpen && (
+                        <div className="fixed inset-0 bg-black/60 z-50" onClick={() => setIsLogOpen(false)}>
+                            <div className="fixed bottom-0 left-0 right-0 h-1/2 glass border-t border-white/10 rounded-t-[40px] p-8 overflow-y-auto custom-scrollbar" onClick={e => e.stopPropagation()}>
+                                <h3 className="serif text-xl text-[#D4AF37] mb-6">Actividad del Robot</h3>
+                                <div className="space-y-3">
+                                    {log.map((line, i) => (
+                                        <div key={i} className="text-[10px] font-mono text-white/40 border-l-2 border-[#D4AF37]/30 pl-3 py-1">{line}</div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
