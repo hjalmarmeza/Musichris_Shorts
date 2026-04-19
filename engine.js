@@ -178,27 +178,35 @@ async function generateMasterpieceSequence(row, id) {
 async function renderShort(row) {
     const { id, inputVideo } = row;
     const finalPath = path.join(CONFIG.outputDir, `SHORT_MASTERPIECE_ANIMATED_LOGO.mp4`);
+    
+    // LIMPIEZA ANTI-ZOMBI: Borrar video anterior para evitar subir archivos viejos si este falla
+    if (fs.existsSync(finalPath)) {
+        try { fs.unlinkSync(finalPath); } catch(e) {}
+    }
+
     console.log(`\n[ENGINE] 🎬 Rendering with ANIMATED LOGO: ${id}`);
 
     // Pre-download media
     const localVideoPath = path.join(CONFIG.tempDir, `${id}_bg.mp4`);
     const localAudioPath = path.join(CONFIG.tempDir, `${id}_audio.mp3`);
     
-    let videoPath = path.join(__dirname, 'nas_test_video.mp4');
+    let videoPath = null;
     if (inputVideo && !inputVideo.includes('ug.link')) {
         try {
             const resultVideo = await downloadMedia(inputVideo, localVideoPath);
             if (resultVideo) videoPath = resultVideo;
         } catch(e) { console.error('Error info video:', e); }
     }
+    if (!videoPath) throw new Error(`Fallo crítico: No se pudo obtener el video de fondo para ${id}`);
     
-    let audioPath = path.join(__dirname, 'chorus_cireneo.mp3');
+    let audioPath = null;
     if (row.audioUrl) {
          try {
             const resultAudio = await downloadMedia(row.audioUrl, localAudioPath);
             if (resultAudio) audioPath = resultAudio;
          } catch(e) { console.error('Error info audio:', e); }
     }
+    if (!audioPath) throw new Error(`Fallo crítico: No se pudo obtener el audio para ${id}`);
 
     console.log('[ENGINE] Getting video duration...');
     const originalDuration = getVideoDuration(videoPath);
