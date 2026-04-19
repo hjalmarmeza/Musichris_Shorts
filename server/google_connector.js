@@ -44,14 +44,18 @@ async function getAllSongs() {
     // Skip header row
     return rows.slice(1).map((r, i) => {
         const title = r[1] || ''; // Columna B (Nombre real)
+        
+        // BÚSQUEDA INTELIGENTE: Encontrar el link de Drive sin importar la columna
+        const driveUrl = r.find(cell => cell && cell.includes('drive.google.com/'));
+        
         return {
-            rowIndex: i + 2, // +2 because 1-indexed and skip header
-            album: r[0] || 'MusiChris', // Columna A
+            rowIndex: i + 2,
+            album: r[0] || 'MusiChris',
             title: title,
-            audioUrl: r[6] || '', // Columna G (Drive URL - Ajustado a G según catálogo maestro)
+            audioUrl: driveUrl || '', // El link real, esté donde esté
             status: r[4] || '',  // Columna E (Status)
             youtubeId: '',
-            shortCount: parseInt(r[7]) || 0, // Columna H (Short Count)
+            shortCount: parseInt(r[7]) || 0, // Volvemos a H para el contador
             id: title.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
         };
     }).filter(s => s.title && s.title.length < 100); 
