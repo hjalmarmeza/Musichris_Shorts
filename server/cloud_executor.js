@@ -38,7 +38,8 @@ async function runEngine() {
             : "Salmos 23:1";
 
         // La IA solo genera el mensaje de reflexión basado en el contexto teológico
-        const aiResponse = await generateAIContent(song.title, theologyData ? theologyData.context : null, finalVerse);
+        // La IA genera el mensaje basado en TODO el contexto teológico (v26.1)
+        const aiResponse = await generateAIContent(song.title, theologyData, finalVerse);
         
         // 3. Mapeo de Integridad v25.1
         const row = {
@@ -57,9 +58,9 @@ async function runEngine() {
             verse: row.verse
         });
 
-        // 5. Subida a YouTube (Aquí sí mantenemos los hashtags)
+        // 5. Subida a YouTube (Descripción blindada v26.1)
         const finalVideoPath = path.join(__dirname, '..', 'output', `VIDEO_${song.id}.mp4`);
-        const ytDescription = `${aiResponse.citation}\n\n${aiResponse.message}\n\n${aiResponse.tags}`;
+        const ytDescription = `${finalVerse}\n\n${aiResponse.message}\n\n${aiResponse.tags}`;
         const ytData = await uploadToYouTube(finalVideoPath, song.title, ytDescription);
 
         // 6. Estados y Contadores

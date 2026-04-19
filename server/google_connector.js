@@ -255,7 +255,10 @@ async function getSongTheology(songTitle) {
         const idxThematic = headers.findIndex(h => h.toUpperCase().includes('TEMÁTICA CENTRAL'));
 
         const normalizedTarget = songTitle.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-        const found = rows.find(r => (r[1] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() === normalizedTarget);
+        const found = rows.find(r => {
+            const rowTitle = (r[idxTitle] || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+            return rowTitle === normalizedTarget;
+        });
         
         if (found) {
             console.log(`[THEO-SOURCE] ¡Base bíblica encontrada para: ${songTitle}!`);

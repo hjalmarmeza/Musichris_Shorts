@@ -83,7 +83,7 @@ app.post('/api/publish', async (req, res) => {
             ? theologyData.verse 
             : "Salmos 23:1";
 
-        const message = await generateAIContent(song.title, theologyData ? theologyData.context : null, finalVerse);
+        const message = await generateAIContent(song.title, theologyData, finalVerse);
         
         // 5. Execute Render Engine
         await renderShort({
@@ -98,7 +98,7 @@ app.post('/api/publish', async (req, res) => {
         // 6. Upload to YouTube (Unlisted)
         // Usar el ID dinámico generado por el engine
         const finalVideoPath = require('path').join(__dirname, '..', 'output', `VIDEO_${song.id}.mp4`);
-        const ytDescription = `${message.quote}\n\nEscucha ${song.title} completa en nuestro perfil.\n\n${message.verse}`;
+        const ytDescription = `${finalVerse}\n\n${message.message}\n\n${message.tags}`;
         const ytData = await uploadToYouTube(finalVideoPath, song.title, ytDescription);
 
         // 7. Update Sheet status
