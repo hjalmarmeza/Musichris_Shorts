@@ -48,10 +48,10 @@ async function getAllSongs() {
             rowIndex: i + 2, // +2 because 1-indexed and skip header
             album: r[0] || 'MusiChris', // Columna A
             title: title,
-            audioUrl: r[5] || '', // Columna F (Drive URL)
+            audioUrl: r[6] || '', // Columna G (Drive URL - Ajustado a G según catálogo maestro)
             status: r[4] || '',  // Columna E (Status)
             youtubeId: '',
-            shortCount: 0,
+            shortCount: parseInt(r[7]) || 0, // Columna H (Short Count)
             id: title.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
         };
     }).filter(s => s.title && s.title.length < 100); 
@@ -275,17 +275,17 @@ async function incrementSongShortCount(rowIndex) {
     const auth = await getAuth();
     const sheets = googleSheets({ version: 'v4', auth });
     
-    // Obtener valor actual
+    // Obtener valor actual (Ahora en THEOLOGY_SHEET_ID Hoja 4)
     const res = await sheets.spreadsheets.values.get({
-        spreadsheetId: DB_SHEET_ID,
-        range: `Hoja 2!H${rowIndex}`
+        spreadsheetId: THEOLOGY_SHEET_ID,
+        range: `Hoja 4!H${rowIndex}`
     });
     const currentCount = parseInt(res.data.values?.[0]?.[0]) || 0;
     
     // Incrementar y Guardar
     await sheets.spreadsheets.values.update({
-        spreadsheetId: DB_SHEET_ID,
-        range: `Hoja 2!H${rowIndex}`,
+        spreadsheetId: THEOLOGY_SHEET_ID,
+        range: `Hoja 4!H${rowIndex}`,
         valueInputOption: 'RAW',
         resource: {
             values: [[currentCount + 1]]
@@ -298,8 +298,8 @@ async function markSongAsDone(rowIndex) {
     const auth = await getAuth();
     const sheets = googleSheets({ version: 'v4', auth });
     await sheets.spreadsheets.values.update({
-        spreadsheetId: DB_SHEET_ID,
-        range: `Hoja 2!E${rowIndex}`,
+        spreadsheetId: THEOLOGY_SHEET_ID,
+        range: `Hoja 4!E${rowIndex}`,
         valueInputOption: 'RAW',
         resource: { values: [['done']] }
     });
