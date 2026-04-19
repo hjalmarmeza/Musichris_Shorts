@@ -4,12 +4,18 @@ const { drive: googleDrive } = require('@googleapis/drive');
 const { OAuth2Client } = require('google-auth-library');
 const fs = require('fs');
 const path = require('path');
+const config = require('./master_config');
 
 const CREDENTIALS_PATH = path.join(__dirname, '..', 'credentials.json');
 const TOKEN_PATH = path.join(__dirname, '..', 'token.json');
-const DB_SHEET_ID = '19zXfIiAZktXXyixZ1HdcW1IO9bOBn8S8sRPZAXUVZbE';
-const SHORTS_SHEET_ID = '17vd4F5yhQUPYFOO6ZR6uNkBwlq2BuJRNFO9SN-ViN5Y';
-const THEOLOGY_SHEET_ID = '1oTVSF7CjrCtnk3pHdBIRE8gzhE9zKDM5NJFyWV-qsJs';
+
+const DB_SHEET_ID = config.sheets.master_catalog;
+const SHORTS_SHEET_ID = config.sheets.landscapes;
+const THEOLOGY_SHEET_ID = config.sheets.theology;
+
+const LANDSCAPE_TAB = config.tabs.landscapes;
+const THEO_TAB = config.tabs.theology;
+const SONGS_TAB = config.tabs.songs;
 
 async function getAuth() {
     try {
@@ -38,7 +44,7 @@ async function getAllSongs() {
     const sheets = googleSheets({ version: 'v4', auth });
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: DB_SHEET_ID,
-        range: 'Hoja 2!A:E'
+        range: `${SONGS_TAB}!A:E`
     });
     const rows = res.data.values || [];
     // Skip header row
@@ -66,7 +72,7 @@ async function getLandscapes() {
     const sheets = googleSheets({ version: 'v4', auth });
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SHORTS_SHEET_ID,
-        range: 'Hoja 1!A:E'
+        range: `${LANDSCAPE_TAB}!A:E`
     });
     const rows = res.data.values || [];
     return rows.slice(1).map((r, i) => ({
@@ -218,7 +224,7 @@ async function getSongTheology(songTitle) {
         const sheets = googleSheets({ version: 'v4', auth });
         const res = await sheets.spreadsheets.values.get({
             spreadsheetId: THEOLOGY_SHEET_ID,
-            range: 'Hoja 4!A:L'
+            range: `${THEO_TAB}!A:L`
         });
         const rows = res.data.values || [];
         
@@ -281,7 +287,7 @@ async function incrementSongShortCount(songTitle) {
     // 1. Encontrar la fila correcta en Hoja 4 comparando títulos
     const resAll = await sheets.spreadsheets.values.get({
         spreadsheetId: THEOLOGY_SHEET_ID,
-        range: 'Hoja 4!A:B'
+        range: `${THEO_TAB}!A:B`
     });
     const rows = resAll.data.values || [];
     const normalizedTarget = songTitle.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
@@ -294,13 +300,13 @@ async function incrementSongShortCount(songTitle) {
     if (rowIndexInTheology > 0) {
         const resVal = await sheets.spreadsheets.values.get({
             spreadsheetId: THEOLOGY_SHEET_ID,
-            range: `Hoja 4!H${rowIndexInTheology}`
+            range: `${THEO_TAB}!H${rowIndexInTheology}`
         });
         const currentCount = parseInt(resVal.data.values?.[0]?.[0]) || 0;
         
         await sheets.spreadsheets.values.update({
             spreadsheetId: THEOLOGY_SHEET_ID,
-            range: `Hoja 4!H${rowIndexInTheology}`,
+            range: `${THEO_TAB}!H${rowIndexInTheology}`,
             valueInputOption: 'RAW',
             resource: {
                 values: [[currentCount + 1]]
