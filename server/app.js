@@ -1,4 +1,4 @@
-const APP_VERSION = "v24.9 - Identity & Bible Resilience";
+const APP_VERSION = "v25.1 - Soberanía Bíblica";
 const express = require('express');
 const fs = require('fs');
 // Cargar variables de entorno manualmente desde .env
