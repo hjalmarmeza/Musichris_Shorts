@@ -7,7 +7,9 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
     const providers = [
         { name: 'Gemini', key: process.env.GEMINI_API_KEY, func: generateWithGemini },
         { name: 'Groq', key: process.env.GROQ_API_KEY, func: generateWithGroq },
-        { name: 'Mistral', key: process.env.MISTRAL_API_KEY, func: generateWithMistral }
+        { name: 'Mistral', key: process.env.MISTRAL_API_KEY, func: generateWithMistral },
+        { name: 'OpenAI', key: process.env.OPENAI_API_KEY, func: generateWithOpenAI },
+        { name: 'Claude', key: process.env.CLAUDE_API_KEY, func: generateWithClaude }
     ];
 
     for (const provider of providers) {
