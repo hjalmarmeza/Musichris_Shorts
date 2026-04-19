@@ -42,17 +42,32 @@ async function getAuth() {
 async function getAllSongs() {
     const auth = await getAuth();
     const sheets = googleSheets({ version: 'v4', auth });
-    const res = await sheets.spreadsheets.values.get({
+    
+    // 1. Obtener canciones de Hoja 2 (Catálogo de Audio)
+    const resSongs = await sheets.spreadsheets.values.get({
         spreadsheetId: DB_SHEET_ID,
         range: `${SONGS_TAB}!A:E`
     });
-    const rows = res.data.values || [];
-    // Skip header row
-    return rows.slice(1).map((r, i) => {
-        const title = r[2] || ''; // Columna C (Título de la canción)
-        const audioUrl = r[3] || ''; // Columna D (URL Canción)
-        const status = r[4] || 'pending'; // Columna E (Status)
+    const songRows = resSongs.data.values || [];
+
+    // 2. Obtener estadísticas de Hoja 4 (Teología/Contadores)
+    const resStats = await sheets.spreadsheets.values.get({
+        spreadsheetId: THEOLOGY_SHEET_ID,
+        range: `${THEO_TAB}!A:J`
+    });
+    const statRows = resStats.data.values || [];
+
+    // 3. Mapear datos
+    return songRows.slice(1).map((r, i) => {
+        const title = r[2] || ''; 
+        const audioUrl = r[3] || ''; 
+        const status = r[4] || 'pending'; 
         
+        // Buscar el contador en la Hoja 4 por título
+        const normalizedTitle = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const statFound = statRows.find(sr => (sr[1] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() === normalizedTitle);
+        const count = statFound ? parseInt(statFound[9]) || 0 : 0; // Columna J (Index 9)
+
         return {
             rowIndex: i + 2, 
             album: r[0] || 'MusiChris', 
@@ -60,7 +75,7 @@ async function getAllSongs() {
             audioUrl: audioUrl, 
             status: status,
             youtubeId: '',
-            shortCount: 0,
+            shortCount: count,
             id: title.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
         };
     }).filter(s => s.title && s.title.length < 100); 
@@ -239,9 +254,9 @@ async function getSongTheology(songTitle) {
         if (found) {
             console.log(`[THEO-SOURCE] ¡Base bíblica encontrada para: ${songTitle}!`);
             return {
-                verse: found[2],    // Verso Bíblico / Pasaje
-                context: found[4],  // Contenido Bíblico
-                thematic: found[7]  // Temática Central
+                verse: found[2],    // Columna C: PASAJE BÍBLICO
+                context: found[4],  // Columna E: CONTENIDO BÍBLICO
+                thematic: found[5]  // Columna F: TEMÁTICA CENTRAL
             };
         }
         console.warn(`[THEO-SOURCE] No se encontró registro en Hoja 4 para: ${songTitle}`);
@@ -300,13 +315,13 @@ async function incrementSongShortCount(songTitle) {
     if (rowIndexInTheology > 0) {
         const resVal = await sheets.spreadsheets.values.get({
             spreadsheetId: THEOLOGY_SHEET_ID,
-            range: `${THEO_TAB}!H${rowIndexInTheology}`
+            range: `${THEO_TAB}!J${rowIndexInTheology}`
         });
         const currentCount = parseInt(resVal.data.values?.[0]?.[0]) || 0;
         
         await sheets.spreadsheets.values.update({
             spreadsheetId: THEOLOGY_SHEET_ID,
-            range: `${THEO_TAB}!H${rowIndexInTheology}`,
+            range: `${THEO_TAB}!J${rowIndexInTheology}`,
             valueInputOption: 'RAW',
             resource: {
                 values: [[currentCount + 1]]
