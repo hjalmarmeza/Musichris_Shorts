@@ -11,3 +11,4 @@ output/
 # Archivos de sistema
 .DS_Store
 *.log
+*.mp4
