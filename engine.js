@@ -177,14 +177,14 @@ async function generateMasterpieceSequence(row, id) {
 
 async function renderShort(row) {
     const { id, inputVideo } = row;
-    const finalPath = path.join(CONFIG.outputDir, `SHORT_MASTERPIECE_ANIMATED_LOGO.mp4`);
+    const finalPath = path.join(CONFIG.outputDir, `VIDEO_${id}.mp4`);
     
-    // LIMPIEZA ANTI-ZOMBI: Borrar video anterior para evitar subir archivos viejos si este falla
+    // LIMPIEZA DINÁMICA: Borrar específicamente este video si ya existía
     if (fs.existsSync(finalPath)) {
         try { fs.unlinkSync(finalPath); } catch(e) {}
     }
 
-    console.log(`\n[ENGINE] 🎬 Rendering with ANIMATED LOGO: ${id}`);
+    console.log(`\n[ENGINE] 🎬 Rendering masterpiece: ${id}`);
 
     // Pre-download media
     const localVideoPath = path.join(CONFIG.tempDir, `${id}_bg.mp4`);

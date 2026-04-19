@@ -43,7 +43,7 @@ async function runEngine() {
         });
 
         // 5. Subida a YouTube (Aquí sí mantenemos los hashtags)
-        const finalVideoPath = path.join(__dirname, '..', 'output', 'SHORT_MASTERPIECE_ANIMATED_LOGO.mp4');
+        const finalVideoPath = path.join(__dirname, '..', 'output', `VIDEO_${song.id}.mp4`);
         const ytDescription = `${aiResponse.citation}\n\n${aiResponse.message}\n\n${aiResponse.tags}`;
         const ytData = await uploadToYouTube(finalVideoPath, song.title, ytDescription);
 

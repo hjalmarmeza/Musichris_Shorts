@@ -75,7 +75,8 @@ app.post('/api/publish', async (req, res) => {
         console.log(`[MASTER] Generando el Short #${songCount + 1}`);
 
         // 4. Gemini Intelligence Phase (Generación Dinámica)
-        const message = await generateAIContent(song.title, song.album);
+        const theologyContext = await require('./google_connector').getSongTheology(song.title);
+        const message = await generateAIContent(song.title, theologyContext);
         
         // 5. Execute Render Engine
         await renderShort({
@@ -86,7 +87,8 @@ app.post('/api/publish', async (req, res) => {
         });
         
         // 6. Upload to YouTube (Unlisted)
-        const finalVideoPath = require('path').join(__dirname, '..', 'output', 'SHORT_MASTERPIECE_ANIMATED_LOGO.mp4');
+        // Usar el ID dinámico generado por el engine
+        const finalVideoPath = require('path').join(__dirname, '..', 'output', `VIDEO_${song.id}.mp4`);
         const ytDescription = `${message.quote}\n\nEscucha ${song.title} completa en nuestro perfil.\n\n${message.verse}`;
         const ytData = await uploadToYouTube(finalVideoPath, song.title, ytDescription);
 
