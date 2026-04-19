@@ -1,11 +1,10 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const reflectionLibrary = require('./reflection_library');
 
 async function generateAIContent(songTitle, theologyContext = null, fallbackCitation = "Salmos 23:1") {
     const timestamp = new Date().getTime();
     
     // Configuración de la Pentarquía de Blindaje Gratis (v29.0)
-    const reflectionLibrary = require('./reflection_library');
-
     const providers = [
         { name: 'Groq', key: process.env.GROQ_API_KEY, func: generateWithGroq },
         { name: 'Gemini', key: process.env.GEMINI_API_KEY, func: generateWithGemini },
@@ -29,23 +28,40 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
         }
     }
 
-    // EL ESCUDO DE GRACIA PROFESIONAL: Usar mensajes de inspiración basados en temática (10 por tema)
-    console.warn(`⚠️ ALERTA: Usando LIBRERÍA DE RESPALDO (Variedad x10) por fallo de IA.`);
-    const normalize = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-    const thematic = normalize(theologyContext ? theologyContext.thematic : 'default');
-    
-    let category = 'aliento'; // Categoría base
-    for (const key in reflectionLibrary) {
-        if (thematic.includes(normalize(key))) {
-            category = key;
-            break;
+    // MOTOR DE INTELIGENCIA LOCAL (v33.0): Genera 10 reflexiones específicas por canción
+    const generateSpecificReflections = (title, context) => {
+        const norm = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const thematic = norm(context ? context.thematic : 'aliento');
+        const songName = title.split('(')[0].trim(); // Limpiamos el título
+        
+        let category = 'aliento';
+        for (const key in reflectionLibrary) {
+            if (thematic.includes(norm(key))) { category = key; break; }
         }
-    }
 
-    // Elección aleatoria de 1 entre 10
-    const messages = reflectionLibrary[category] || reflectionLibrary['aliento'];
-    const randomIndex = Math.floor(Math.random() * messages.length);
-    const finalMessage = messages[randomIndex];
+        const baseMessages = reflectionLibrary[category] || reflectionLibrary['aliento'];
+        
+        // Patrones de personalización para unir la temática con el título de la canción
+        const patterns = [
+            `En "${songName}", descubrimos que ${baseMessages[0].toLowerCase()}`,
+            `Que la esencia de "${songName}" te recuerde que ${baseMessages[1].toLowerCase()}`,
+            `Inspirados por "${songName}": ${baseMessages[2]}`,
+            `${baseMessages[3]} Que "${songName}" sea hoy tu oración.`,
+            `Al escuchar "${songName}", recuerda: ${baseMessages[4].toLowerCase()}`,
+            `"${songName}" es un eco de esperanza: ${baseMessages[5]}`,
+            `Que en tu vida resuene "${songName}" y que ${baseMessages[6].toLowerCase()}`,
+            `A través de "${songName}", Dios te dice: ${baseMessages[7]}`,
+            `En cada nota de "${songName}", ${baseMessages[8].toLowerCase()}`,
+            `Que la promesa de "${songName}" se cumpla: ${baseMessages[9]}`
+        ];
+        return patterns;
+    };
+
+    // EL ESCUDO DE GRACIA PROFESIONAL (v33.1): 10 Reflexiones únicas por canción (180 canciones x 10)
+    console.warn(`⚠️ ALERTA: Usando GENERADOR 10x180 (Específico por Canción) por fallo de IA.`);
+    const songReflections = generateSpecificReflections(songTitle, theologyContext);
+    const randomIndex = Math.floor(Math.random() * songReflections.length);
+    const finalMessage = songReflections[randomIndex];
 
     return {
         message: finalMessage,
@@ -180,4 +196,3 @@ function buildPrompt(title, context, ts) {
 }
 
 module.exports = { generateAIContent };
-// Force new run v27.2

@@ -357,8 +357,20 @@ async function markSongAsDone(rowIndex) {
     });
 }
 
+async function listTheologySongs() {
+    const auth = await getAuth();
+    const sheets = googleSheets({ version: 'v4', auth });
+    const res = await sheets.spreadsheets.values.get({
+        spreadsheetId: THEOLOGY_SHEET_ID,
+        range: `${THEO_TAB}!A:E`
+    });
+    const rows = res.data.values || [];
+    return rows.slice(1).map(r => r[1]).filter(Boolean); // Columna B (Título)
+}
+
 module.exports = { 
     getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, 
     syncDriveFolderToSheet, setVideoPublic, downloadDriveFile, getChannelStats,
-    updateChannelStats, getSongTheology, incrementSongShortCount, markSongAsDone
+    updateChannelStats, getSongTheology, incrementSongShortCount, markSongAsDone,
+    listTheologySongs
 };
