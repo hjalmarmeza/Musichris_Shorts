@@ -250,6 +250,7 @@ async function getSongTheology(songTitle) {
         
         // Normalización para búsqueda exacta        
         const headers = rows[0] || [];
+        const idxTitle = headers.findIndex(h => h.toUpperCase().includes('TÍTULO DE CANCIÓN'));
         const idxVerse = headers.findIndex(h => h.toUpperCase().includes('PASAJE BÍBLICO'));
         const idxContext = headers.findIndex(h => h.toUpperCase().includes('CONTENIDO BÍBLICO'));
         const idxThematic = headers.findIndex(h => h.toUpperCase().includes('TEMÁTICA CENTRAL'));
