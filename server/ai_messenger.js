@@ -35,13 +35,16 @@ async function generateAIContent(songTitle, theologyContext = null) {
 
 async function generateWithGemini(title, context, key, ts) {
     const prompt = buildPrompt(title, context, ts);
-    const model = "gemini-1.5-flash-latest"; // Usamos la versión estable más reciente
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${key}`, {
+    const model = "gemini-1.5-flash"; 
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     });
-    if (!response.ok) throw new Error(`Status ${response.status}`);
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Status ${response.status}: ${errText}`);
+    }
     const data = await response.json();
     let text = data.candidates[0].content.parts[0].text;
     return JSON.parse(text.replace(/```json|```/g, '').trim());
@@ -53,13 +56,16 @@ async function generateWithGroq(title, context, key, ts) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
         body: JSON.stringify({
-            model: "llama-3.1-70b-versatile", // Modelo actualizado y potente
+            model: "llama-3.1-70b-versatile",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7,
             response_format: { "type": "json_object" }
         })
     });
-    if (!response.ok) throw new Error(`Status ${response.status}`);
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Status ${response.status}: ${errText}`);
+    }
     const data = await response.json();
     return JSON.parse(data.choices[0].message.content);
 }
@@ -76,7 +82,10 @@ async function generateWithOpenAI(title, context, key, ts) {
             response_format: { "type": "json_object" }
         })
     });
-    if (!response.ok) throw new Error(`Status ${response.status} (Verificar saldo en OpenAI)`);
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Status ${response.status}: ${errText}`);
+    }
     const data = await response.json();
     return JSON.parse(data.choices[0].message.content);
 }
@@ -92,11 +101,14 @@ async function generateWithClaude(title, context, key, ts) {
         },
         body: JSON.stringify({
             model: "claude-3-haiku-20240307",
-            max_tokens: 300,
-            messages: [{ role: "user", content: prompt + "\nRESPUESTA: JSON PURO" }]
+            max_tokens: 512,
+            messages: [{ role: "user", content: prompt + "\nIMPORTANTE: Responde UNICAMENTE el objeto JSON." }]
         })
     });
-    if (!response.ok) throw new Error(`Status ${response.status}`);
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Status ${response.status}: ${errText}`);
+    }
     const data = await response.json();
     let content = data.content[0].text;
     return JSON.parse(content.replace(/```json|```/g, '').trim());
@@ -113,7 +125,10 @@ async function generateWithMistral(title, context, key, ts) {
             response_format: { type: "json_object" }
         })
     });
-    if (!response.ok) throw new Error(`Status ${response.status}`);
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Status ${response.status}: ${errText}`);
+    }
     const data = await response.json();
     return JSON.parse(data.choices[0].message.content);
 }
