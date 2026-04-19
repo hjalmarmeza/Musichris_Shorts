@@ -1,54 +1,91 @@
 const fetch = require('node-fetch');
 
 async function generateAIContent(songTitle, theologyContext = null) {
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    const model = "gemini-1.5-flash";
-    const timestamp = new Date().getTime(); // Semilla de aleatoriedad
+    const timestamp = new Date().getTime();
     
-    let instructions = `Misión: Creador de contenido de ALTO IMPACTO y VIDA para la marca MusiChris. 
-    Canción: "${songTitle}". 
-    CONTEXTO ÚNICO [ID-${timestamp}]: No uses frases hechas ni clichés religiosos comunes.
-    
-    Genera un JSON con:
-    1. "citation": Una referencia bíblica corta y poderosa.
-    2. "message": Una profunda reflexión de esperanza de MÁXIMO 100 caracteres. Debe sonar fresca, moderna y ministerial.
-    3. "tags": 3 hashtags de gran alcance.
-    
-    RESPONDE UNICAMENTE JSON PURO.`;
+    // Configuración de la Cascada
+    const providers = [
+        { name: 'Gemini', key: process.env.GEMINI_API_KEY, func: generateWithGemini },
+        { name: 'Groq', key: process.env.GROQ_API_KEY, func: generateWithGroq },
+        { name: 'OpenAI', key: process.env.OPENAI_API_KEY, func: generateWithOpenAI }
+    ];
 
-    if (theologyContext) {
-        instructions = `Misión: ALIENTO Y VIDA. Basándote en el versículo "${theologyContext.verse}" y la temática "${theologyContext.thematic}" de la canción "${songTitle}".
-        
-        REGLAS DE ORO:
-        - "citation": Usa exactamente "${theologyContext.verse}".
-        - "message": Escribe una reflexión de IMPACTO TOTAL basada en ese pasaje. Máximo 100 caracteres. 
-        - Único: Esta respuesta debe ser diferente a cualquier otra (Referencia: ${timestamp}).
-        
-        RESPONDE UNICAMENTE JSON.`;
-    }
-
-    try {
-        console.log(`[AI-GEN] Solicitando contenido único para: ${songTitle}...`);
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: instructions }] }] })
-        });
-
-        if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(`API de Gemini rechazó la petición: ${JSON.stringify(errData)}`);
+    for (const provider of providers) {
+        if (!provider.key) {
+            console.warn(`⚠️ Saltando ${provider.name}: API Key no configurada.`);
+            continue;
         }
 
-        const data = await response.json();
-        let jsonStr = data.candidates[0].content.parts[0].text;
-        jsonStr = jsonStr.replace(/```json|```/g, '').trim();
-        return JSON.parse(jsonStr);
-
-    } catch (e) {
-        console.error('❌ [AI-GEN ERROR]:', e.message);
-        throw new Error(`Error generando IA para ${songTitle}. Deteniendo para evitar duplicados genéricos.`);
+        try {
+            console.log(`[AI-CASCADE] Intentando con ${provider.name} para: ${songTitle}...`);
+            const result = await provider.func(songTitle, theologyContext, provider.key, timestamp);
+            if (result) {
+                console.log(`✅ [AI-CASCADE] Mensaje generado con éxito vía ${provider.name}.`);
+                return result;
+            }
+        } catch (e) {
+            console.error(`❌ [AI-CASCADE] ${provider.name} falló:`, e.message);
+            // Continúa al siguiente proveedor en la lista
+        }
     }
+
+    throw new Error('💥 FALLO TOTAL: Ninguna de las APIs de IA respondió. Verifica tus API Keys.');
+}
+
+async function generateWithGemini(title, context, key, ts) {
+    const prompt = buildPrompt(title, context, ts);
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    if (!response.ok) throw new Error(`Status ${response.status}`);
+    const data = await response.json();
+    return JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim());
+}
+
+async function generateWithGroq(title, context, key, ts) {
+    const prompt = buildPrompt(title, context, ts);
+    const response = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify({
+            model: "llama3-8b-8192",
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" }
+        })
+    });
+    if (!response.ok) throw new Error(`Status ${response.status}`);
+    const data = await response.json();
+    return JSON.parse(data.choices[0].message.content);
+}
+
+async function generateWithOpenAI(title, context, key, ts) {
+    const prompt = buildPrompt(title, context, ts);
+    const response = await fetch(`https://api.openai.com/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" }
+        })
+    });
+    if (!response.ok) throw new Error(`Status ${response.status}`);
+    const data = await response.json();
+    return JSON.parse(data.choices[0].message.content);
+}
+
+function buildPrompt(title, context, ts) {
+    if (context) {
+        return `Misión: ALIENTO Y VIDA. Basándote en el versículo "${context.verse}" para la canción "${title}". 
+        Genera un JSON con:
+        1. "citation": Exactamente "${context.verse}".
+        2. "message": Reflexión de impacto (base: ${ts}) de máx. 100 caracteres. Única y fresca.
+        3. "tags": 3 hashtags.
+        Responde SOLO JSON.`;
+    }
+    return `Misión: ALIENTO. Canción "${title}". Ref: ${ts}. Genera JSON con: "citation" (Biblia), "message" (esperanza, máx 100 caracteres), "tags". SOLO JSON.`;
 }
 
 module.exports = { generateAIContent };
