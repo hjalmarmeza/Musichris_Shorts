@@ -29,13 +29,17 @@ async function runEngine() {
         console.log(`[AUDITORÍA] 🎵 Procesando: "${song.title}"`);
         console.log(`[AUDITORÍA] 🔗 Audio Source (Col D): ${song.audioUrl}`);
         
-        // 2. Inteligencia Teológica (Fuente de Verdad: Hoja 4)
+        // 2. Inteligencia Teológica (Fuente de Verdad Obligatoria: Hoja 4)
         const theologyData = await getSongTheology(song.title);
         
+        if (!theologyData) {
+            throw new Error(`❌ ERROR DE INTEGRIDAD: La canción "${song.title}" no tiene registro en la HOJA 4 de Teología. Por favor, asegúrate de que el nombre coincida exactamente.`);
+        }
+        
         // El versículo es SAGRADO: Se toma directamente de tu Excel (Hoja 4, Col C)
-        const finalVerse = (theologyData && theologyData.verse && theologyData.verse !== 'Cita no encontrada') 
+        const finalVerse = (theologyData.verse && theologyData.verse !== 'Cita no encontrada') 
             ? theologyData.verse 
-            : "Salmos 23:1";
+            : "Lucas 7:37"; // Fallback mínimo por seguridad, pero el error de arriba evitará llegar aquí si no hay datos.
 
         // La IA solo genera el mensaje de reflexión basado en el contexto teológico
         // La IA genera el mensaje basado en TODO el contexto teológico (v26.1)
