@@ -37,25 +37,24 @@ async function getAllSongs() {
     const auth = await getAuth();
     const sheets = googleSheets({ version: 'v4', auth });
     const res = await sheets.spreadsheets.values.get({
-        spreadsheetId: THEOLOGY_SHEET_ID,
-        range: 'Hoja 4!A:L'
+        spreadsheetId: DB_SHEET_ID,
+        range: 'Hoja 2!A:E'
     });
     const rows = res.data.values || [];
     // Skip header row
     return rows.slice(1).map((r, i) => {
-        const title = r[1] || ''; // Columna B (Nombre real)
-        
-        // BÚSQUEDA INTELIGENTE: Encontrar el link de Drive sin importar la columna
-        const driveUrl = r.find(cell => cell && cell.includes('drive.google.com/'));
+        const title = r[2] || ''; // Columna C (Título de la canción)
+        const audioUrl = r[3] || ''; // Columna D (URL Canción)
+        const status = r[4] || 'pending'; // Columna E (Status)
         
         return {
-            rowIndex: i + 2,
-            album: r[0] || 'MusiChris',
+            rowIndex: i + 2, 
+            album: r[0] || 'MusiChris', 
             title: title,
-            audioUrl: driveUrl || '', // El link real, esté donde esté
-            status: r[4] || '',  // Columna E (Status)
+            audioUrl: audioUrl, 
+            status: status,
             youtubeId: '',
-            shortCount: parseInt(r[7]) || 0, // Volvemos a H para el contador
+            shortCount: 0,
             id: title.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
         };
     }).filter(s => s.title && s.title.length < 100); 
@@ -275,35 +274,48 @@ async function updateChannelStats(stats) {
     });
 }
 
-async function incrementSongShortCount(rowIndex) {
+async function incrementSongShortCount(songTitle) {
     const auth = await getAuth();
     const sheets = googleSheets({ version: 'v4', auth });
     
-    // Obtener valor actual (Ahora en THEOLOGY_SHEET_ID Hoja 4)
-    const res = await sheets.spreadsheets.values.get({
+    // 1. Encontrar la fila correcta en Hoja 4 comparando títulos
+    const resAll = await sheets.spreadsheets.values.get({
         spreadsheetId: THEOLOGY_SHEET_ID,
-        range: `Hoja 4!H${rowIndex}`
+        range: 'Hoja 4!A:B'
     });
-    const currentCount = parseInt(res.data.values?.[0]?.[0]) || 0;
+    const rows = resAll.data.values || [];
+    const normalizedTarget = songTitle.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
     
-    // Incrementar y Guardar
-    await sheets.spreadsheets.values.update({
-        spreadsheetId: THEOLOGY_SHEET_ID,
-        range: `Hoja 4!H${rowIndex}`,
-        valueInputOption: 'RAW',
-        resource: {
-            values: [[currentCount + 1]]
-        }
-    });
-    console.log(`[SHEETS] Contador Canción fila ${rowIndex} incrementado a: ${currentCount + 1}`);
+    const rowIndexInTheology = rows.findIndex(r => {
+        const rowTitle = (r[1] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        return rowTitle === normalizedTarget;
+    }) + 1; // +1 porque findIndex es 0-indexed
+
+    if (rowIndexInTheology > 0) {
+        const resVal = await sheets.spreadsheets.values.get({
+            spreadsheetId: THEOLOGY_SHEET_ID,
+            range: `Hoja 4!H${rowIndexInTheology}`
+        });
+        const currentCount = parseInt(resVal.data.values?.[0]?.[0]) || 0;
+        
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: THEOLOGY_SHEET_ID,
+            range: `Hoja 4!H${rowIndexInTheology}`,
+            valueInputOption: 'RAW',
+            resource: {
+                values: [[currentCount + 1]]
+            }
+        });
+        console.log(`[SHEETS] Contador para "${songTitle}" (Fila ${rowIndexInTheology}) incrementado.`);
+    }
 }
 
 async function markSongAsDone(rowIndex) {
     const auth = await getAuth();
     const sheets = googleSheets({ version: 'v4', auth });
     await sheets.spreadsheets.values.update({
-        spreadsheetId: THEOLOGY_SHEET_ID,
-        range: `Hoja 4!E${rowIndex}`,
+        spreadsheetId: DB_SHEET_ID,
+        range: `Hoja 2!E${rowIndex}`,
         valueInputOption: 'RAW',
         resource: { values: [['done']] }
     });

@@ -46,7 +46,7 @@ async function runEngine() {
 
         // 6. Estados y Contadores
         await updateShortStatus(landscape.rowIndex, 'done', ytData.id, song.title);
-        await incrementSongShortCount(song.rowIndex);
+        await incrementSongShortCount(song.title);
         await markSongAsDone(song.rowIndex);
         
         console.log(`✅ [CLOUD ENGINE] ¡Short de "${song.title}" completado y datos actualizados!`);
