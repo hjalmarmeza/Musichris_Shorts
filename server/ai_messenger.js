@@ -5,12 +5,20 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
     
     // Configuración de la Pentarquía de Blindaje Gratis (v29.0)
     const providers = [
-        { name: 'Gemini', key: process.env.GEMINI_API_KEY, func: generateWithGemini },
         { name: 'Groq', key: process.env.GROQ_API_KEY, func: generateWithGroq },
+        { name: 'Gemini', key: process.env.GEMINI_API_KEY, func: generateWithGemini },
         { name: 'Mistral', key: process.env.MISTRAL_API_KEY, func: generateWithMistral },
         { name: 'OpenAI', key: process.env.OPENAI_API_KEY, func: generateWithOpenAI },
         { name: 'Claude', key: process.env.CLAUDE_API_KEY, func: generateWithClaude }
     ];
+
+    const fallbackMessages = {
+        'default': 'Que la paz de Dios que sobrepasa todo entendimiento guarde hoy tu corazón.',
+        'victoria': 'En Su fortaleza somos más que vencedores. ¡Él pelea tus batallas!',
+        'paz': 'Descansa en Su presencia. Él es tu refugio seguro en medio de la tormenta.',
+        'amor': 'Su amor es inagotable y Su gracia te sostiene en cada paso que das.',
+        'esperanza': 'Abre tus ojos a la luz de una nueva esperanza; Sus promesas son eternas.'
+    };
 
     for (const provider of providers) {
         if (!provider.key) continue;
@@ -27,18 +35,16 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
         }
     }
 
-    // EL ESCUDO DE GRACIA: Si todo falla, procesar el texto del Excel para que sea elegante
-    console.warn(`⚠️ ALERTA: Usando ESCUDO DE GRACIA REFINADO por fallo de IA.`);
-    let finalMessage = "Dios tiene un mensaje de esperanza para tu vida hoy.";
+    // EL ESCUDO DE GRACIA PROFESIONAL: Usar mensajes de inspiración basados en temática
+    console.warn(`⚠️ ALERTA: Usando GALERÍA DE INSPIRACIÓN por fallo de IA.`);
+    const thematic = (theologyContext && theologyContext.thematic) ? theologyContext.thematic.toLowerCase() : 'default';
     
-    if (theologyContext && theologyContext.context) {
-        // Limpiamos el texto del Excel (quitamos paréntesis, notas técnicas y lo acortamos de forma elegante)
-        finalMessage = theologyContext.context
-            .replace(/\(.*?\)/g, '') // Quita paréntesis
-            .split('.')[0]           // Toma solo la primera frase
-            .trim();
-        
-        if (finalMessage.length > 120) finalMessage = finalMessage.substring(0, 117) + "...";
+    let finalMessage = fallbackMessages.default;
+    for (const key in fallbackMessages) {
+        if (thematic.includes(key)) {
+            finalMessage = fallbackMessages[key];
+            break;
+        }
     }
 
     return {
@@ -50,7 +56,7 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
 
 async function generateWithGemini(title, context, key, ts) {
     const prompt = buildPrompt(title, context, ts);
-    const models = ["gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"]; 
+    const models = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro"]; 
     
     for (const model of models) {
         try {
@@ -77,7 +83,7 @@ async function generateWithGroq(title, context, key, ts) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
         body: JSON.stringify({
-            model: "llama-3.1-8b-instant", // Modelo activo y gratuito
+            model: "llama3-8b-8192", 
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7,
             response_format: { "type": "json_object" }
