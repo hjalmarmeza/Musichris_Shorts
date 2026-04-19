@@ -221,30 +221,37 @@ async function renderShort(row) {
     }
     
     console.log('[ENGINE] Preparing ffmpeg arguments...');
+    const hasLogo = fs.existsSync(CONFIG.logoVideo);
     const args = ['-y', '-i', videoPath, '-stream_loop', '-1', '-i', audioPath];
-    // Input 2: Animated Logo
-    args.push('-stream_loop', '-1', '-i', CONFIG.logoVideo);
-    // Inputs 3+: Screenshots
+    
+    if (hasLogo) {
+        args.push('-stream_loop', '-1', '-i', CONFIG.logoVideo);
+    }
+
+    // Input index for screenshots starts after video, audio and (optionally) logo
+    const screenshotStartIndex = hasLogo ? 3 : 2;
     frames.forEach(f => args.push('-loop', '1', '-i', f.path, '-r', CONFIG.fps.toString()));
 
     const ptsFactor = (CONFIG.targetDuration / originalDuration).toFixed(6);
     let filter = `[0:v]setpts=${ptsFactor}*PTS,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,`;
     filter += `eq=brightness=-0.1:contrast=1.1,vignette=angle=0.5,format=yuv420p[bg];`;
     
-    // Process Animated Logo: Scale, Crop to circle (330px)
-    filter += `[2:v]scale=330:330:force_original_aspect_ratio=increase,crop=330:330,setsar=1[logo_s];`;
-    filter += `[logo_s]geq=lum='p(X,Y)':a='if(gt(sqrt(pow(X-165,2)+pow(Y-165,2)),165),0,255)'[logo_final];`;
+    if (hasLogo) {
+        // Process Animated Logo: Scale, Crop to circle (330px)
+        filter += `[2:v]scale=330:330:force_original_aspect_ratio=increase,crop=330:330,setsar=1[logo_s];`;
+        filter += `[logo_s]geq=lum='p(X,Y)':a='if(gt(sqrt(pow(X-165,2)+pow(Y-165,2)),165),0,255)'[logo_final];`;
+    }
 
     let lastV = 'bg';
     frames.forEach((f, i) => {
         const nextTime = (i < frames.length - 1) ? frames[i+1].startTime : CONFIG.targetDuration;
         const currentV = `v${i}`;
         
-        // Normal overlay of UI screenshots
-        filter += `[${lastV}][${i + 3}:v]overlay=0:0:enable='between(t,${f.startTime.toFixed(2)},${nextTime.toFixed(2)})'`;
+        // Dynamic input index calculation
+        const inputIdx = i + screenshotStartIndex;
+        filter += `[${lastV}][${inputIdx}:v]overlay=0:0:enable='between(t,${f.startTime.toFixed(2)},${nextTime.toFixed(2)})'`;
         
-        if (f.startTime >= CONFIG.outroStartTime) {
-            // Updated X:375 e Y:600 para coincidencia total con template.html v12
+        if (hasLogo && f.startTime >= CONFIG.outroStartTime) {
             filter += `[base${i}];[base${i}][logo_final]overlay=375:600:enable='between(t,${f.startTime.toFixed(2)},${nextTime.toFixed(2)})'[${currentV}];`;
         } else {
             filter += `[${currentV}];`;
