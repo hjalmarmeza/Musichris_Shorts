@@ -250,10 +250,14 @@ async function getSongTheology(songTitle) {
         
         // Normalización para búsqueda exacta        
         const headers = rows[0] || [];
-        const idxTitle = headers.findIndex(h => h.toUpperCase().includes('TÍTULO DE CANCIÓN'));
-        const idxVerse = headers.findIndex(h => h.toUpperCase().includes('PASAJE BÍBLICO'));
-        const idxContext = headers.findIndex(h => h.toUpperCase().includes('CONTENIDO BÍBLICO'));
-        const idxThematic = headers.findIndex(h => h.toUpperCase().includes('TEMÁTICA CENTRAL'));
+        const normalize = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        
+        const idxTitle = headers.findIndex(h => normalize(h) === 'titulo');
+        const idxVerse = headers.findIndex(h => normalize(h).includes('verso biblico'));
+        const idxContext = headers.findIndex(h => normalize(h).includes('contenido biblico'));
+        const idxThematic = headers.findIndex(h => normalize(h).includes('tematica central'));
+        
+        console.log(`[DEBUG] Mapeo Hoja 4: Titulo:${idxTitle}, Pasaje:${idxVerse}, Contexto:${idxContext}`);
 
         const normalizedTarget = songTitle.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         const found = rows.find(r => {
