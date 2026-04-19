@@ -32,26 +32,29 @@ async function getAuth() {
     }
 }
 
-// Get all songs from DB_Musichris_app Hoja 2
+// Get all songs from the unified catalog (Hoja 4 of 1oTVS...)
 async function getAllSongs() {
     const auth = await getAuth();
     const sheets = googleSheets({ version: 'v4', auth });
     const res = await sheets.spreadsheets.values.get({
-        spreadsheetId: DB_SHEET_ID,
-        range: 'Hoja 2!A:G'
+        spreadsheetId: THEOLOGY_SHEET_ID,
+        range: 'Hoja 4!A:L'
     });
     const rows = res.data.values || [];
     // Skip header row
-    return rows.slice(1).map((r, i) => ({
-        rowIndex: i + 2, // +2 because 1-indexed and skip header
-        album: r[1] || 'MusiChris',
-        title: r[2] || '',
-        audioUrl: r[3] || '',
-        status: r[4] || '',
-        youtubeId: r[5] || '',
-        shortCount: parseInt(r[7]) || 0,
-        id: (r[2] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
-    })).filter(s => s.title); // Only songs with a title
+    return rows.slice(1).map((r, i) => {
+        const title = r[1] || ''; // Columna B (Nombre real)
+        return {
+            rowIndex: i + 2, // +2 because 1-indexed and skip header
+            album: r[0] || 'MusiChris', // Columna A
+            title: title,
+            audioUrl: r[5] || '', // Columna F (Drive URL)
+            status: r[4] || '',  // Columna E (Status)
+            youtubeId: '',
+            shortCount: 0,
+            id: title.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
+        };
+    }).filter(s => s.title && s.title.length < 100); 
 }
 
 // Get available landscapes from MusiChris Short sheet
