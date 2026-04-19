@@ -3,12 +3,10 @@ const fetch = require('node-fetch');
 async function generateAIContent(songTitle, theologyContext = null) {
     const timestamp = new Date().getTime();
     
-    // Configuración de la Pentarquía de Blindaje (v25.1)
+    // Configuración de la Pentarquía de Blindaje Gratis (v29.0)
     const providers = [
         { name: 'Gemini', key: process.env.GEMINI_API_KEY, func: generateWithGemini },
         { name: 'Groq', key: process.env.GROQ_API_KEY, func: generateWithGroq },
-        { name: 'OpenAI', key: process.env.OPENAI_API_KEY || process.env.CHATGPT_API_KEY, func: generateWithOpenAI },
-        { name: 'Claude', key: process.env.ANTHROPIC_API_KEY, func: generateWithClaude },
         { name: 'Mistral', key: process.env.MISTRAL_API_KEY, func: generateWithMistral }
     ];
 
