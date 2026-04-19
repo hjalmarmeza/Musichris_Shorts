@@ -57,11 +57,15 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
         return patterns;
     };
 
-    // EL ESCUDO DE GRACIA PROFESIONAL (v33.1): 10 Reflexiones únicas por canción (180 canciones x 10)
-    console.warn(`⚠️ ALERTA: Usando GENERADOR 10x180 (Específico por Canción) por fallo de IA.`);
+    // EL ESCUDO DE GRACIA PROFESIONAL (v34.0): Secuenciador basado en el Excel (Columna J)
+    console.warn(`⚠️ ALERTA: Usando SECUENCIADOR 10x180 (Trazabilidad Excel) por fallo de IA.`);
+    
     const songReflections = generateSpecificReflections(songTitle, theologyContext);
-    const randomIndex = Math.floor(Math.random() * songReflections.length);
-    const finalMessage = songReflections[randomIndex];
+    
+    // Usamos el contador del Excel para elegir la reflexión de forma ordenada
+    const currentCount = (theologyContext && theologyContext.shortCount) ? parseInt(theologyContext.shortCount) : 0;
+    const index = currentCount % songReflections.length;
+    const finalMessage = songReflections[index];
 
     return {
         message: finalMessage,

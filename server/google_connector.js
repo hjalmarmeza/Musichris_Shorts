@@ -257,8 +257,9 @@ async function getSongTheology(songTitle) {
         const idxVerse = headers.findIndex(h => normalize(h).includes('verso biblico'));
         const idxContext = headers.findIndex(h => normalize(h).includes('contenido biblico'));
         const idxThematic = headers.findIndex(h => normalize(h).includes('tematica central'));
+        const idxShortCount = 9; // Columna J (0-indexed es 9)
         
-        console.log(`[DEBUG] Mapeo Hoja 4: Titulo:${idxTitle}, Pasaje:${idxVerse}, Contexto:${idxContext}`);
+        console.log(`[DEBUG] Mapeo Hoja 4: Titulo:${idxTitle}, Pasaje:${idxVerse}, Contexto:${idxContext}, Count:${idxShortCount}`);
 
         const normalizedTarget = songTitle.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         const found = rows.find(r => {
@@ -271,7 +272,8 @@ async function getSongTheology(songTitle) {
             return {
                 verse: found[idxVerse] || 'Cita no encontrada',    
                 context: found[idxContext] || 'Contexto no encontrado',  
-                thematic: found[idxThematic] || 'Temática no encontrada'  
+                thematic: found[idxThematic] || 'Temática no encontrada',
+                shortCount: found[idxShortCount] || 0
             };
         }
         console.warn(`[THEO-SOURCE] No se encontró registro en Hoja 4 para: ${songTitle}`);
