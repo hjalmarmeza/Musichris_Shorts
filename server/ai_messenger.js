@@ -13,11 +13,17 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
     ];
 
     const fallbackMessages = {
-        'default': 'Que la paz de Dios que sobrepasa todo entendimiento guarde hoy tu corazón.',
-        'victoria': 'En Su fortaleza somos más que vencedores. ¡Él pelea tus batallas!',
-        'paz': 'Descansa en Su presencia. Él es tu refugio seguro en medio de la tormenta.',
-        'amor': 'Su amor es inagotable y Su gracia te sostiene en cada paso que das.',
-        'esperanza': 'Abre tus ojos a la luz de una nueva esperanza; Sus promesas son eternas.'
+        'default': 'Que Su gracia te sostenga y Su luz ilumine cada uno de tus pasos hoy.',
+        'adoracion': 'Que nuestro corazón se convierta en un altar donde solo Su nombre sea exaltado.',
+        'entrega': 'Rendirnos ante Su presencia es el acto más valeroso que un alma puede realizar.',
+        'paz': 'En medio de cualquier tormenta, Su paz es el refugio que guarda nuestra alma.',
+        'victoria': 'Ninguna batalla es más grande que Aquel que ya venció por nosotros en la cruz.',
+        'amor': 'Su amor incondicional es la fuerza que nos restaura y nos da nueva vida.',
+        'esperanza': 'Aun en el silencio, Sus promesas siguen vigentes y Su fidelidad es eterna.',
+        'fortaleza': 'Cuando mis fuerzas se acaban, Su poder se perfecciona en mi debilidad.',
+        'gracia': 'No es por nuestros méritos, es por Su gracia infinita que hoy estamos de pie.',
+        'reflexion': 'Detente un momento y contempla la grandeza de Su obra en tu propia vida.',
+        'confianza': 'Descansa en Su control divino; Él conoce el camino y tiene cuidado de ti.'
     };
 
     for (const provider of providers) {
@@ -37,7 +43,8 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
 
     // EL ESCUDO DE GRACIA PROFESIONAL: Usar mensajes de inspiración basados en temática
     console.warn(`⚠️ ALERTA: Usando GALERÍA DE INSPIRACIÓN por fallo de IA.`);
-    const thematic = (theologyContext && theologyContext.thematic) ? theologyContext.thematic.toLowerCase() : 'default';
+    const normalize = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    const thematic = normalize(theologyContext ? theologyContext.thematic : 'default');
     
     let finalMessage = fallbackMessages.default;
     for (const key in fallbackMessages) {
