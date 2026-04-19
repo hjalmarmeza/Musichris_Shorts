@@ -18,6 +18,9 @@ async function runEngine() {
         if (!landscape) throw new Error('No hay paisajes disponibles.');
 
         // 2. Fundamento y IA Minimalista
+        console.log(`[AUDITORÍA] 🎵 Procesando: "${song.title}"`);
+        console.log(`[AUDITORÍA] 🔗 Audio Source (Col D): ${song.audioUrl}`);
+        
         console.log(`📖 Analizando teología para: ${song.title}...`);
         const theologyContext = await getSongTheology(song.title);
         const aiResponse = await generateAIContent(song.title, theologyContext);
