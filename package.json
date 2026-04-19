@@ -8,13 +8,10 @@
     "render-cloud": "node server/cloud_executor.js"
   },
   "dependencies": {
-    "@googleapis/sheets": "^9.0.0",
-    "@googleapis/youtube": "^19.0.0",
-    "@googleapis/drive": "^8.0.0",
-    "google-auth-library": "^9.0.0",
-    "puppeteer-core": "^21.0.0",
-    "fluent-ffmpeg": "^2.1.2",
     "csv-parser": "^3.0.0",
-    "node-fetch": "^2.7.0"
+    "fluent-ffmpeg": "^2.1.2",
+    "googleapis": "^128.0.0",
+    "node-fetch": "^2.7.0",
+    "puppeteer-core": "^21.0.0"
   }
 }
