@@ -1,45 +1,44 @@
 const fetch = require('node-fetch');
 
-const FALLBACK_TEMPLATES = [
-    {
-        citation: "Jeremías 29:11",
-        msg: "Dios tiene pensamientos de paz para ti hoy. No temas, Su plan es devolverte la esperanza y un futuro lleno de Su luz.",
-        tags: "#Esperanza #Fe #DiosEsBueno"
-    },
-    {
-        citation: "Filipenses 4:13",
-        msg: "Aunque el camino sea difícil, Su fuerza te sostiene. Hoy puedes levantarte porque Cristo es quien te fortalece.",
-        tags: "#Fortaleza #Victoria #Aliento"
-    }
-];
-
 async function generateAIContent(songTitle, theologyContext = null) {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const model = "gemini-1.5-flash";
+    const timestamp = new Date().getTime(); // Semilla de aleatoriedad
     
-    // El prompt ahora se enfoca en MINISTERIAL/ALIENTO, con variedad garantizada.
-    let instructions = `Actúa como un pastor que brinda aliento. Para el tema "${songTitle}", genera un JSON con:
-    1. "citation": La referencia bíblica corta.
-    2. "message": Una reflexión de ESPERANZA NUEVA y ÚNICA (máximo 100 caracteres). NO repitas frases comunes.
-    3. "tags": 3 hashtags de fe.
-    Responde UNICAMENTE JSON.`;
+    let instructions = `Misión: Creador de contenido de ALTO IMPACTO y VIDA para la marca MusiChris. 
+    Canción: "${songTitle}". 
+    CONTEXTO ÚNICO [ID-${timestamp}]: No uses frases hechas ni clichés religiosos comunes.
+    
+    Genera un JSON con:
+    1. "citation": Una referencia bíblica corta y poderosa.
+    2. "message": Una profunda reflexión de esperanza de MÁXIMO 100 caracteres. Debe sonar fresca, moderna y ministerial.
+    3. "tags": 3 hashtags de gran alcance.
+    
+    RESPONDE UNICAMENTE JSON PURO.`;
 
     if (theologyContext) {
-        instructions = `Misión: Brindar aliento y vida. La canción "${songTitle}" se basa en: ${theologyContext.verse}.
+        instructions = `Misión: ALIENTO Y VIDA. Basándote en el versículo "${theologyContext.verse}" y la temática "${theologyContext.thematic}" de la canción "${songTitle}".
         
-        Tu tarea:
-        1. "citation": Usa EXACTAMENTE "${theologyContext.verse}".
-        2. "message": Basándote en ese versículo, escribe una reflexión de esperanza TOTALMENTE NUEVA y DIFERENTE a interpretaciones previas. Que sea profunda y motivadora (máx. 100 caracteres).
-        3. "tags": 3 hashtags basados en "${theologyContext.thematic}".
-        Responde UNICAMENTE JSON.`;
+        REGLAS DE ORO:
+        - "citation": Usa exactamente "${theologyContext.verse}".
+        - "message": Escribe una reflexión de IMPACTO TOTAL basada en ese pasaje. Máximo 100 caracteres. 
+        - Único: Esta respuesta debe ser diferente a cualquier otra (Referencia: ${timestamp}).
+        
+        RESPONDE UNICAMENTE JSON.`;
     }
 
     try {
+        console.log(`[AI-GEN] Solicitando contenido único para: ${songTitle}...`);
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: instructions }] }] })
         });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(`API de Gemini rechazó la petición: ${JSON.stringify(errData)}`);
+        }
 
         const data = await response.json();
         let jsonStr = data.candidates[0].content.parts[0].text;
@@ -47,8 +46,8 @@ async function generateAIContent(songTitle, theologyContext = null) {
         return JSON.parse(jsonStr);
 
     } catch (e) {
-        const t = FALLBACK_TEMPLATES[Math.floor(Math.random() * FALLBACK_TEMPLATES.length)];
-        return { citation: t.citation, message: t.msg, tags: t.tags };
+        console.error('❌ [AI-GEN ERROR]:', e.message);
+        throw new Error(`Error generando IA para ${songTitle}. Deteniendo para evitar duplicados genéricos.`);
     }
 }
 
