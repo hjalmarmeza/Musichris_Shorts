@@ -10,8 +10,8 @@ async function runEngine() {
     try {
         // 1. Obtener Datos
         const songs = await getAllSongs();
-        const song = songs.find(s => s.id === SONG_ID) || songs.find(s => s.status === 'pending');
-        if (!song) throw new Error('No hay canciones pendientes.');
+        const song = songs.find(s => s.id === SONG_ID);
+        if (!song) throw new Error(`Canción con ID "${SONG_ID}" no encontrada o no disponible.`);
 
         const landscapes = await getLandscapes();
         const landscape = landscapes.find(l => l.status === 'pending');

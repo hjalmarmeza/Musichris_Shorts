@@ -336,7 +336,7 @@ async function markSongAsDone(rowIndex) {
     const sheets = googleSheets({ version: 'v4', auth });
     await sheets.spreadsheets.values.update({
         spreadsheetId: DB_SHEET_ID,
-        range: `Hoja 2!E${rowIndex}`,
+        range: `${SONGS_TAB}!E${rowIndex}`,
         valueInputOption: 'RAW',
         resource: { values: [['done']] }
     });
