@@ -4,6 +4,8 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
     const timestamp = new Date().getTime();
     
     // Configuración de la Pentarquía de Blindaje Gratis (v29.0)
+    const reflectionLibrary = require('./reflection_library');
+
     const providers = [
         { name: 'Groq', key: process.env.GROQ_API_KEY, func: generateWithGroq },
         { name: 'Gemini', key: process.env.GEMINI_API_KEY, func: generateWithGemini },
@@ -11,20 +13,6 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
         { name: 'OpenAI', key: process.env.OPENAI_API_KEY, func: generateWithOpenAI },
         { name: 'Claude', key: process.env.CLAUDE_API_KEY, func: generateWithClaude }
     ];
-
-    const fallbackMessages = {
-        'default': 'Que Su gracia te sostenga y Su luz ilumine cada uno de tus pasos hoy.',
-        'adoracion': 'Que nuestro corazón se convierta en un altar donde solo Su nombre sea exaltado.',
-        'entrega': 'Rendirnos ante Su presencia es el acto más valeroso que un alma puede realizar.',
-        'paz': 'En medio de cualquier tormenta, Su paz es el refugio que guarda nuestra alma.',
-        'victoria': 'Ninguna batalla es más grande que Aquel que ya venció por nosotros en la cruz.',
-        'amor': 'Su amor incondicional es la fuerza que nos restaura y nos da nueva vida.',
-        'esperanza': 'Aun en el silencio, Sus promesas siguen vigentes y Su fidelidad es eterna.',
-        'fortaleza': 'Cuando mis fuerzas se acaban, Su poder se perfecciona en mi debilidad.',
-        'gracia': 'No es por nuestros méritos, es por Su gracia infinita que hoy estamos de pie.',
-        'reflexion': 'Detente un momento y contempla la grandeza de Su obra en tu propia vida.',
-        'confianza': 'Descansa en Su control divino; Él conoce el camino y tiene cuidado de ti.'
-    };
 
     for (const provider of providers) {
         if (!provider.key) continue;
@@ -41,18 +29,23 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
         }
     }
 
-    // EL ESCUDO DE GRACIA PROFESIONAL: Usar mensajes de inspiración basados en temática
-    console.warn(`⚠️ ALERTA: Usando GALERÍA DE INSPIRACIÓN por fallo de IA.`);
+    // EL ESCUDO DE GRACIA PROFESIONAL: Usar mensajes de inspiración basados en temática (10 por tema)
+    console.warn(`⚠️ ALERTA: Usando LIBRERÍA DE RESPALDO (Variedad x10) por fallo de IA.`);
     const normalize = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
     const thematic = normalize(theologyContext ? theologyContext.thematic : 'default');
     
-    let finalMessage = fallbackMessages.default;
-    for (const key in fallbackMessages) {
-        if (thematic.includes(key)) {
-            finalMessage = fallbackMessages[key];
+    let category = 'aliento'; // Categoría base
+    for (const key in reflectionLibrary) {
+        if (thematic.includes(normalize(key))) {
+            category = key;
             break;
         }
     }
+
+    // Elección aleatoria de 1 entre 10
+    const messages = reflectionLibrary[category] || reflectionLibrary['aliento'];
+    const randomIndex = Math.floor(Math.random() * messages.length);
+    const finalMessage = messages[randomIndex];
 
     return {
         message: finalMessage,
