@@ -3,11 +3,13 @@ const fetch = require('node-fetch');
 async function generateAIContent(songTitle, theologyContext = null) {
     const timestamp = new Date().getTime();
     
-    // Configuración de la Cascada
+    // Configuración de la Pentarquía de Blindaje (v25.1)
     const providers = [
         { name: 'Gemini', key: process.env.GEMINI_API_KEY, func: generateWithGemini },
         { name: 'Groq', key: process.env.GROQ_API_KEY, func: generateWithGroq },
-        { name: 'OpenAI', key: process.env.OPENAI_API_KEY, func: generateWithOpenAI }
+        { name: 'OpenAI', key: process.env.OPENAI_API_KEY || process.env.CHATGPT_API_KEY, func: generateWithOpenAI },
+        { name: 'Claude', key: process.env.ANTHROPIC_API_KEY, func: generateWithClaude },
+        { name: 'Mistral', key: process.env.MISTRAL_API_KEY, func: generateWithMistral }
     ];
 
     for (const provider of providers) {
@@ -25,11 +27,10 @@ async function generateAIContent(songTitle, theologyContext = null) {
             }
         } catch (e) {
             console.error(`❌ [AI-CASCADE] ${provider.name} falló:`, e.message);
-            // Continúa al siguiente proveedor en la lista
         }
     }
 
-    throw new Error('💥 FALLO TOTAL: Ninguna de las APIs de IA respondió. Verifica tus API Keys.');
+    throw new Error('💥 COLAPSO TOTAL: Ninguna de las 5 APIs de IA respondió. El sistema está ciego.');
 }
 
 async function generateWithGemini(title, context, key, ts) {
@@ -67,6 +68,42 @@ async function generateWithOpenAI(title, context, key, ts) {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
         body: JSON.stringify({
             model: "gpt-4o-mini",
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" }
+        })
+    });
+    if (!response.ok) throw new Error(`Status ${response.status}`);
+    const data = await response.json();
+    return JSON.parse(data.choices[0].message.content);
+}
+
+async function generateWithClaude(title, context, key, ts) {
+    const prompt = buildPrompt(title, context, ts);
+    const response = await fetch(`https://api.anthropic.com/v1/messages`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json', 
+            'x-api-key': key,
+            'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+            model: "claude-3-haiku-20240307",
+            max_tokens: 200,
+            messages: [{ role: "user", content: prompt + " Responde directamente con el JSON." }]
+        })
+    });
+    if (!response.ok) throw new Error(`Status ${response.status}`);
+    const data = await response.json();
+    return JSON.parse(data.content[0].text.replace(/```json|```/g, '').trim());
+}
+
+async function generateWithMistral(title, context, key, ts) {
+    const prompt = buildPrompt(title, context, ts);
+    const response = await fetch(`https://api.mistral.ai/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify({
+            model: "mistral-small-latest",
             messages: [{ role: "user", content: prompt }],
             response_format: { type: "json_object" }
         })
