@@ -21,7 +21,7 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
             if (result) {
                 console.log(`✅ [AI-CASCADE] Mensaje generado con éxito vía ${provider.name}.`);
                 if (!result.citation || result.citation.trim() === "") result.citation = fallbackCitation;
-                return result;
+                return { ...result, source: provider.name };
             }
         } catch (e) {
             console.error(`❌ [AI-CASCADE] ${provider.name} falló:`, e.message);
@@ -70,7 +70,8 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
     return {
         message: finalMessage,
         citation: fallbackCitation,
-        tags: "#musichris #adoracion #shorts"
+        tags: "#musichris #adoracion #shorts",
+        source: `Library_Index_${index}`
     };
 }
 

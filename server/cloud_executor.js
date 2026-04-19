@@ -3,6 +3,7 @@ const { getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, download
 const { generateAIContent } = require('./ai_messenger');
 const { renderShort } = require('../engine');
 const path = require('path');
+const { logProduction } = require('./audit_logger');
 
 async function runEngine() {
     // LIMPIEZA TOTAL DE ARRANQUE: Borrar carpetas temporales para evitar archivos zombis
@@ -51,6 +52,14 @@ async function runEngine() {
             complement: "",               
             verse: finalVerse             // EL VERSÍCULO REAL DE TU EXCEL
         };
+        
+        // Registrar intención de producción
+        logProduction({
+            song: song.title,
+            source: aiResponse.source,
+            message: aiResponse.message,
+            verse: finalVerse
+        });
 
         // 4. Renderizado Masterpiece
         await renderShort({
@@ -66,6 +75,15 @@ async function runEngine() {
         const finalVideoPath = path.join(__dirname, '..', 'output', `VIDEO_${song.id}.mp4`);
         const ytDescription = `${finalVerse}\n\n${aiResponse.message}\n\n${aiResponse.tags}`;
         const ytData = await uploadToYouTube(finalVideoPath, song.title, ytDescription);
+        
+        // Actualizar registro con URL final
+        logProduction({
+            song: song.title,
+            source: aiResponse.source,
+            message: aiResponse.message,
+            verse: finalVerse,
+            video_url: `https://youtube.com/watch?v=${ytData.id}`
+        });
 
         // 6. Estados y Contadores
         await updateShortStatus(landscape.rowIndex, 'done', ytData.id, song.title);
