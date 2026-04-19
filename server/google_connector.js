@@ -1,6 +1,7 @@
-const { sheets: googleSheets } = require('@googleapis/sheets');
-const { youtube: googleYoutube } = require('@googleapis/youtube');
-const { drive: googleDrive } = require('@googleapis/drive');
+const { google } = require('googleapis');
+const googleSheets = google.sheets;
+const googleDrive = google.drive;
+const googleYoutube = google.youtube;
 const { OAuth2Client } = require('google-auth-library');
 const fs = require('fs');
 const path = require('path');

@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 async function generateAIContent(songTitle, theologyContext = null, fallbackCitation = "Salmos 23:1") {
     const timestamp = new Date().getTime();
@@ -11,19 +11,13 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
     ];
 
     for (const provider of providers) {
-        if (!provider.key) {
-            console.warn(`⚠️ Saltando ${provider.name}: API Key no configurada.`);
-            continue;
-        }
-
+        if (!provider.key) continue;
         try {
             console.log(`[AI-CASCADE] Intentando con ${provider.name} para: ${songTitle}...`);
             const result = await provider.func(songTitle, theologyContext, provider.key, timestamp);
             if (result) {
                 console.log(`✅ [AI-CASCADE] Mensaje generado con éxito vía ${provider.name}.`);
-                if (!result.citation || result.citation.trim() === "") {
-                    result.citation = fallbackCitation;
-                }
+                if (!result.citation || result.citation.trim() === "") result.citation = fallbackCitation;
                 return result;
             }
         } catch (e) {
@@ -31,24 +25,38 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
         }
     }
 
-    throw new Error('💥 COLAPSO TOTAL: Ninguna de las 5 APIs de IA respondió. El sistema está ciego.');
+    // EL ESCUDO DE GRACIA: Si todo falla, usar tu propio Excel como mensaje
+    console.warn(`⚠️ ALERTA: Usando ESCUDO DE GRACIA (Excel) por fallo de IA.`);
+    return {
+        message: (theologyContext && theologyContext.context) 
+            ? theologyContext.context.substring(0, 120) + "..." 
+            : "Dios tiene pensamientos de paz para ti hoy.",
+        citation: fallbackCitation,
+        tags: "#musichris #worship #shorts"
+    };
 }
 
 async function generateWithGemini(title, context, key, ts) {
     const prompt = buildPrompt(title, context, ts);
-    const model = "gemini-1.5-flash"; 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${key}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    });
-    if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`Status ${response.status}: ${errText}`);
+    const models = ["gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"]; 
+    
+    for (const model of models) {
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                let text = data.candidates[0].content.parts[0].text;
+                return JSON.parse(text.replace(/```json|```/g, '').trim());
+            }
+        } catch (e) {
+            console.warn(`[GEMINI-TRY] Falló modelo ${model}, intentando siguiente...`);
+        }
     }
-    const data = await response.json();
-    let text = data.candidates[0].content.parts[0].text;
-    return JSON.parse(text.replace(/```json|```/g, '').trim());
+    throw new Error('Ningún modelo de Gemini respondió.');
 }
 
 async function generateWithGroq(title, context, key, ts) {
