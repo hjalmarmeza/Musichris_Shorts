@@ -27,14 +27,24 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
         }
     }
 
-    // EL ESCUDO DE GRACIA: Si todo falla, usar tu propio Excel como mensaje
-    console.warn(`⚠️ ALERTA: Usando ESCUDO DE GRACIA (Excel) por fallo de IA.`);
+    // EL ESCUDO DE GRACIA: Si todo falla, procesar el texto del Excel para que sea elegante
+    console.warn(`⚠️ ALERTA: Usando ESCUDO DE GRACIA REFINADO por fallo de IA.`);
+    let finalMessage = "Dios tiene un mensaje de esperanza para tu vida hoy.";
+    
+    if (theologyContext && theologyContext.context) {
+        // Limpiamos el texto del Excel (quitamos paréntesis, notas técnicas y lo acortamos de forma elegante)
+        finalMessage = theologyContext.context
+            .replace(/\(.*?\)/g, '') // Quita paréntesis
+            .split('.')[0]           // Toma solo la primera frase
+            .trim();
+        
+        if (finalMessage.length > 120) finalMessage = finalMessage.substring(0, 117) + "...";
+    }
+
     return {
-        message: (theologyContext && theologyContext.context) 
-            ? theologyContext.context.substring(0, 120) + "..." 
-            : "Dios tiene pensamientos de paz para ti hoy.",
+        message: finalMessage,
         citation: fallbackCitation,
-        tags: "#musichris #worship #shorts"
+        tags: "#musichris #adoracion #shorts"
     };
 }
 
