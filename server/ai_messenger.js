@@ -41,18 +41,18 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
 
         const baseMessages = reflectionLibrary[category] || reflectionLibrary['aliento'];
         
-        // Patrones de personalización para unir la temática con el título de la canción
+        // PATRONES DE NOTA DE VIDA (v37.1): Directos al corazón del espectador
         const patterns = [
-            `En "${songName}", descubrimos que ${baseMessages[0].toLowerCase()}`,
-            `Que la esencia de "${songName}" te recuerde que ${baseMessages[1].toLowerCase()}`,
-            `Inspirados por "${songName}": ${baseMessages[2]}`,
-            `${baseMessages[3]} Que "${songName}" sea hoy tu oración.`,
-            `Al escuchar "${songName}", recuerda: ${baseMessages[4].toLowerCase()}`,
-            `"${songName}" es un eco de esperanza: ${baseMessages[5]}`,
-            `Que en tu vida resuene "${songName}" y que ${baseMessages[6].toLowerCase()}`,
-            `A través de "${songName}", Dios te dice: ${baseMessages[7]}`,
-            `En cada nota de "${songName}", ${baseMessages[8].toLowerCase()}`,
-            `Que la promesa de "${songName}" se cumpla: ${baseMessages[9]}`
+            `${baseMessages[0]}`,
+            `En este momento, recuerda: ${baseMessages[1]}`,
+            `Una palabra para tu corazón: ${baseMessages[2]}`,
+            `Que hoy se haga realidad en ti: ${baseMessages[3]}`,
+            `${baseMessages[4]} Esta es tu promesa hoy.`,
+            `No te detengas, recuerda que ${baseMessages[5]}`,
+            `Cierra tus ojos y siente que ${baseMessages[6]}`,
+            `Para ti en este día: ${baseMessages[7]}`,
+            `Que tu oración sea: ${baseMessages[8]}`,
+            `Descansa en esta verdad: ${baseMessages[9]}`
         ];
         return patterns;
     };

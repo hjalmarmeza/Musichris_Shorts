@@ -370,9 +370,19 @@ async function listTheologySongs() {
     return rows.slice(1).map(r => r[1]).filter(Boolean); // Columna B (Título)
 }
 
+async function getAllTheologyData() {
+    const auth = await getAuth();
+    const sheets = googleSheets({ version: 'v4', auth });
+    const res = await sheets.spreadsheets.values.get({
+        spreadsheetId: THEOLOGY_SHEET_ID,
+        range: `${THEO_TAB}!A:E`
+    });
+    return res.data.values || [];
+}
+
 module.exports = { 
     getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, 
     syncDriveFolderToSheet, setVideoPublic, downloadDriveFile, getChannelStats,
     updateChannelStats, getSongTheology, incrementSongShortCount, markSongAsDone,
-    listTheologySongs
+    listTheologySongs, getAllTheologyData
 };
