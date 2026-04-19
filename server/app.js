@@ -1,3 +1,4 @@
+const APP_VERSION = "v24.9 - Identity & Bible Resilience";
 const express = require('express');
 const fs = require('fs');
 // Cargar variables de entorno manualmente desde .env
@@ -123,6 +124,6 @@ app.post('/api/confirm-publish', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`\n🎬 MusiChris Short Master Engine v2.0 READY`);
-    console.log(`🚀 Servidor en: http://localhost:${PORT}\n`);
+    console.log(`\n🚀 Musichris Shorts Engine [${APP_VERSION}]`);
+    console.log(`🔗 Dashboard: http://localhost:${PORT}\n`);
 });
