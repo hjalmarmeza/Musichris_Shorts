@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 
-async function generateAIContent(songTitle, theologyContext = null) {
+async function generateAIContent(songTitle, theologyContext = null, fallbackCitation = "Salmos 23:1") {
     const timestamp = new Date().getTime();
     
     // Configuración de la Pentarquía de Blindaje Gratis (v29.0)
@@ -21,6 +21,9 @@ async function generateAIContent(songTitle, theologyContext = null) {
             const result = await provider.func(songTitle, theologyContext, provider.key, timestamp);
             if (result) {
                 console.log(`✅ [AI-CASCADE] Mensaje generado con éxito vía ${provider.name}.`);
+                if (!result.citation || result.citation.trim() === "") {
+                    result.citation = fallbackCitation;
+                }
                 return result;
             }
         } catch (e) {

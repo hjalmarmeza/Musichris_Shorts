@@ -29,9 +29,11 @@ async function runEngine() {
         console.log(`[AUDITORÍA] 🎵 Procesando: "${song.title}"`);
         console.log(`[AUDITORÍA] 🔗 Audio Source (Col D): ${song.audioUrl}`);
         
-        console.log(`📖 Analizando teología para: ${song.title}...`);
+        // 2. Inteligencia Teológica (IA + Biblia de Excel)
         const theologyContext = await getSongTheology(song.title);
-        const aiResponse = await generateAIContent(song.title, theologyContext);
+        // Extraemos la cita bíblica del Excel para usarla como respaldo si la IA falla
+        const fallbackCitation = song.citation || "Salmos 23:1"; 
+        const aiResponse = await generateAIContent(song.title, theologyContext, fallbackCitation);
         
         // 3. Mapeo Minimalista v10.0
         const row = {

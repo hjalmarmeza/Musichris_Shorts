@@ -76,7 +76,8 @@ app.post('/api/publish', async (req, res) => {
 
         // 4. Gemini Intelligence Phase (Generación Dinámica)
         const theologyContext = await require('./google_connector').getSongTheology(song.title);
-        const message = await generateAIContent(song.title, theologyContext);
+        const fallbackCitation = song.citation || "Salmos 23:1";
+        const message = await generateAIContent(song.title, theologyContext, fallbackCitation);
         
         // 5. Execute Render Engine
         await renderShort({
