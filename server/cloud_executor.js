@@ -1,3 +1,4 @@
+const fs = require('fs');
 const { getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, downloadDriveFile, getSongTheology, incrementSongShortCount, markSongAsDone } = require('./google_connector');
 const { generateAIContent } = require('./ai_messenger');
 const { renderShort } = require('../engine');
