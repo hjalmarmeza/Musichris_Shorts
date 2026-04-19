@@ -4,6 +4,13 @@ const { renderShort } = require('../engine');
 const path = require('path');
 
 async function runEngine() {
+    // LIMPIEZA TOTAL DE ARRANQUE: Borrar carpetas temporales para evitar archivos zombis
+    const tempDir = path.join(__dirname, '..', 'temp');
+    if (fs.existsSync(tempDir)) {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+        fs.mkdirSync(tempDir, { recursive: true });
+    }
+
     const SONG_ID = process.env.SONG_ID;
     console.log(`🚀 [CLOUD ENGINE] Iniciando producción para: ${SONG_ID || 'PENDIENTE'}`);
 
