@@ -112,6 +112,7 @@
             const [status, setStatus] = useState('IDLE');
             const [log, setLog] = useState([]);
             const [isLogOpen, setIsLogOpen] = useState(false);
+            const [appError, setAppError] = useState(null);
 
             useEffect(() => {
                 Engine.fetchCatalog().then(setSongs);
@@ -121,6 +122,7 @@
 
             const handleProduce = async (songId) => {
                 setStatus('WORKING');
+                setAppError(null); // Limpiar errores previos
                 const t = new Date().toLocaleTimeString();
                 setLog(p => [`[${t}] 🛰️ Iniciando producción: ${songId}`, ...p]);
                 
@@ -129,12 +131,21 @@
                     setLog(p => [`[${t}] ✅ Orden ejecutada en la nube.`, ...p]);
                 } catch (err) { 
                     setLog(p => [`[${t}] ⚠️ Error: ${err.message}`, ...p]); 
+                    setAppError(`Error en "${songId}": ${err.message}`);
                 }
                 setStatus('IDLE');
             };
 
             return (
                 <div className="w-full max-w-xl mx-auto px-6 py-12 pb-44">
+                    {appError && (
+                        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-md animate-slide-up">
+                            <div className="bg-red-900/80 backdrop-blur-xl border border-red-500/50 p-4 rounded-2xl flex items-center justify-between shadow-2xl">
+                                <p className="text-white text-xs font-bold">{appError}</p>
+                                <button onClick={() => setAppError(null)} className="text-white/50 hover:text-white px-2">✕</button>
+                            </div>
+                        </div>
+                    )}
                     <header className="mb-16">
                         <div className="flex justify-between items-start mb-12">
                             <div className="animate-slide-up">
