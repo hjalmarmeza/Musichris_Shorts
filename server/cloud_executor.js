@@ -29,17 +29,22 @@ async function runEngine() {
         console.log(`[AUDITORÍA] 🎵 Procesando: "${song.title}"`);
         console.log(`[AUDITORÍA] 🔗 Audio Source (Col D): ${song.audioUrl}`);
         
-        // 2. Inteligencia Teológica (IA + Biblia de Excel)
-        const theologyContext = await getSongTheology(song.title);
-        // Extraemos la cita bíblica del Excel para usarla como respaldo si la IA falla
-        const fallbackCitation = song.citation || "Salmos 23:1"; 
-        const aiResponse = await generateAIContent(song.title, theologyContext, fallbackCitation);
+        // 2. Inteligencia Teológica (Fuente de Verdad: Hoja 4)
+        const theologyData = await getSongTheology(song.title);
         
-        // 3. Mapeo Minimalista v10.0
+        // El versículo es SAGRADO: Se toma directamente de tu Excel (Hoja 4, Col C)
+        const finalVerse = (theologyData && theologyData.verse && theologyData.verse !== 'Cita no encontrada') 
+            ? theologyData.verse 
+            : "Salmos 23:1";
+
+        // La IA solo genera el mensaje de reflexión basado en el contexto teológico
+        const aiResponse = await generateAIContent(song.title, theologyData ? theologyData.context : null, finalVerse);
+        
+        // 3. Mapeo de Integridad v25.1
         const row = {
-            quote: aiResponse.message,    // Solo la reflexión (Grande)
-            complement: "",               // Sin hashtags en el video
-            verse: aiResponse.citation    // Solo la CITA BÍBLICA (ej: Salmos 23:1)
+            quote: aiResponse.message,    // Reflexión de la IA
+            complement: "",               
+            verse: finalVerse             // EL VERSÍCULO REAL DE TU EXCEL
         };
 
         // 4. Renderizado Masterpiece

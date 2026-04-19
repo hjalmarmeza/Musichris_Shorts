@@ -76,16 +76,23 @@ app.post('/api/publish', async (req, res) => {
         console.log(`[MASTER] Generando el Short #${songCount + 1}`);
 
         // 4. Gemini Intelligence Phase (Generación Dinámica)
-        const theologyContext = await require('./google_connector').getSongTheology(song.title);
-        const fallbackCitation = song.citation || "Salmos 23:1";
-        const message = await generateAIContent(song.title, theologyContext, fallbackCitation);
+        const theologyData = await require('./google_connector').getSongTheology(song.title);
+        
+        // El versículo es SAGRADO: Se toma directamente de tu Excel (Hoja 4, Col C)
+        const finalVerse = (theologyData && theologyData.verse && theologyData.verse !== 'Cita no encontrada') 
+            ? theologyData.verse 
+            : "Salmos 23:1";
+
+        const message = await generateAIContent(song.title, theologyData ? theologyData.context : null, finalVerse);
         
         // 5. Execute Render Engine
         await renderShort({
             id: song.id,
             inputVideo: landscape.url,
             audioUrl: song.audioUrl,
-            ...message
+            quote: message.message,
+            complement: "",
+            verse: finalVerse // USAR SIEMPRE EL VERSÍCULO DEL EXCEL
         });
         
         // 6. Upload to YouTube (Unlisted)
