@@ -133,14 +133,21 @@ async function generateWithMistral(title, context, key, ts) {
 
 function buildPrompt(title, context, ts) {
     if (context) {
-        return `Misión: ALIENTO Y VIDA. Basándote en el versículo "${context.verse}" para la canción "${title}". 
-        Genera un JSON con:
+        return `Misión: ALIENTO Y VIDA REFRESCANTE. 
+        Canción: ${title}
+        Pasaje: ${context.verse}
+        Contexto Teológico Profundo: ${context.context}
+        Temática Central: ${context.thematic} (Semilla: ${ts})
+        
+        Basado en este contexto teológico específico, genera un mensaje JSON que cumpla:
         1. "citation": Exactamente "${context.verse}".
-        2. "message": Reflexión de impacto (base: ${ts}) de máx. 100 caracteres. Única y fresca.
-        3. "tags": 3 hashtags.
-        Responde SOLO JSON.`;
+        2. "message": Reflexión de impacto PROFUNDA y HUMANA. Máx. 120 caracteres. 
+           PROHIBIDO usar frases genéricas como "Dios tiene paz" o "No temas". 
+           Extrae la esencia del "Contexto Teológico" arriba descrito. 
+        3. "tags": 3 hashtags de adoración.
+        Responde ÚNICAMENTE el objeto JSON puro.`.trim();
     }
-    return `Misión: ALIENTO. Canción "${title}". Ref: ${ts}. Genera JSON con: "citation" (Biblia), "message" (esperanza, máx 100 caracteres), "tags". SOLO JSON.`;
+    return `Misión: ALIENTO. Canción "${title}". (Ref: ${ts}). Genera JSON con: "citation" (Biblia), "message" (esperanza profunda, máx 120 caracteres, basada en la letra), "tags". SOLO JSON.`;
 }
 
 module.exports = { generateAIContent };
