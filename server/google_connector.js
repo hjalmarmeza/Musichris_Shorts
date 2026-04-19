@@ -57,16 +57,21 @@ async function getAllSongs() {
     });
     const statRows = resStats.data.values || [];
 
-    // 3. Mapear datos
+    // 3. Mapeo dinámico por cabeceras para evitar desplazamientos
+    const headers = songRows[0] || [];
+    const idxTitle = headers.findIndex(h => h.toUpperCase().includes('TÍTULO DE CANCIÓN'));
+    const idxAudio = headers.findIndex(h => h.toUpperCase().includes('URL CANCIÓN'));
+    const idxStatus = headers.findIndex(h => h.toUpperCase().includes('STATUS')) || 4; // Fallback a Col E
+
     return songRows.slice(1).map((r, i) => {
-        const title = r[2] || ''; 
-        const audioUrl = r[3] || ''; 
-        const status = r[4] || 'pending'; 
+        const title = r[idxTitle] || ''; 
+        const audioUrl = r[idxAudio] || ''; 
+        const status = r[idxStatus] || 'pending'; 
         
         // Buscar el contador en la Hoja 4 por título
         const normalizedTitle = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         const statFound = statRows.find(sr => (sr[1] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() === normalizedTitle);
-        const count = statFound ? parseInt(statFound[9]) || 0 : 0; // Columna J (Index 9)
+        const count = statFound ? parseInt(statFound[9]) || 0 : 0; 
 
         return {
             rowIndex: i + 2, 
@@ -243,20 +248,21 @@ async function getSongTheology(songTitle) {
         });
         const rows = res.data.values || [];
         
-        // Normalización para búsqueda exacta sin fallos por tildes o espacios
-        const normalizedTarget = songTitle.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-        
-        const found = rows.find(r => {
-            const rowTitle = (r[1] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-            return rowTitle === normalizedTarget;
-        });
+        // Normalización para búsqueda exacta        
+        const headers = rows[0] || [];
+        const idxVerse = headers.findIndex(h => h.toUpperCase().includes('PASAJE BÍBLICO'));
+        const idxContext = headers.findIndex(h => h.toUpperCase().includes('CONTENIDO BÍBLICO'));
+        const idxThematic = headers.findIndex(h => h.toUpperCase().includes('TEMÁTICA CENTRAL'));
 
+        const normalizedTarget = songTitle.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const found = rows.find(r => (r[1] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() === normalizedTarget);
+        
         if (found) {
             console.log(`[THEO-SOURCE] ¡Base bíblica encontrada para: ${songTitle}!`);
             return {
-                verse: found[2],    // Columna C: PASAJE BÍBLICO
-                context: found[4],  // Columna E: CONTENIDO BÍBLICO
-                thematic: found[5]  // Columna F: TEMÁTICA CENTRAL
+                verse: found[idxVerse] || 'Cita no encontrada',    
+                context: found[idxContext] || 'Contexto no encontrado',  
+                thematic: found[idxThematic] || 'Temática no encontrada'  
             };
         }
         console.warn(`[THEO-SOURCE] No se encontró registro en Hoja 4 para: ${songTitle}`);
