@@ -36,7 +36,7 @@ async function generateAIContent(songTitle, theologyContext = null) {
 async function generateWithGemini(title, context, key, ts) {
     const prompt = buildPrompt(title, context, ts);
     const model = "gemini-1.5-flash"; 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${key}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
@@ -56,7 +56,7 @@ async function generateWithGroq(title, context, key, ts) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
         body: JSON.stringify({
-            model: "llama-3.1-70b-versatile",
+            model: "llama-3.1-8b-instant", // Modelo activo y gratuito
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7,
             response_format: { "type": "json_object" }
