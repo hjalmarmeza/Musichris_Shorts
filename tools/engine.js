@@ -8,8 +8,8 @@ const FFMPEG_PATH = fs.existsSync('/opt/homebrew/bin/ffmpeg') ? '/opt/homebrew/b
 const FFPROBE_PATH = fs.existsSync('/opt/homebrew/bin/ffprobe') ? '/opt/homebrew/bin/ffprobe' : 'ffprobe';
 
 const CONFIG = {
-    tempDir: path.join(__dirname, 'temp'),
-    outputDir: path.join(__dirname, 'output'),
+    tempDir: path.join(__dirname, '..', 'temp'),
+    outputDir: path.join(__dirname, '..', 'output'),
     templatePath: path.join(__dirname, '../template.html'),
     logoVideo: path.join(__dirname, 'Logo Hjalmar animado v2.mp4'),
     width: 1080,
@@ -176,6 +176,7 @@ async function generateMasterpieceSequence(row, id) {
 }
 
 async function renderShort(row) {
+    init(); // ASEGURAR QUE LAS CARPETAS EXISTAN
     const { id, inputVideo } = row;
     const finalPath = path.join(CONFIG.outputDir, `VIDEO_${id}.mp4`);
     
