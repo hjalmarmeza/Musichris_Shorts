@@ -14,7 +14,7 @@ const cors = require('cors');
 const path = require('path');
 const { getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, setVideoPublic, downloadDriveFile } = require('./google_connector');
 const { generateAIContent } = require('./ai_messenger');
-const { renderShort } = require('../engine');
+const { renderShort } = require('../tools/engine');
 
 const app = express();
 app.use(cors());

@@ -1,5 +1,5 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-const reflectionLibrary = require('./reflection_library');
+const reflectionLibrary = require('./song_reflections.json');
 
 async function generateAIContent(songTitle, theologyContext = null, fallbackCitation = "Salmos 23:1") {
     const timestamp = new Date().getTime();

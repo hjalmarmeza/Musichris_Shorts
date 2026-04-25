@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, downloadDriveFile, getSongTheology, incrementSongShortCount, markSongAsDone } = require('./google_connector');
 const { generateAIContent } = require('./ai_messenger');
-const { renderShort } = require('../engine');
+const { renderShort } = require('../tools/engine');
 const path = require('path');
 const { logProduction } = require('./audit_logger');
 
