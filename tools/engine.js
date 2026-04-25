@@ -19,9 +19,7 @@ const CONFIG = {
     wordDelay: 0.16,
     lineFinishDelay: 0.8,
     startDelay: 0.8,
-    complementStartTime: 9.0,
-    verseStartTime: 16.0,
-    outroStartTime: 22.0
+    outroStartTime: 23.0
 };
 
 function init() {
@@ -86,11 +84,7 @@ async function downloadMedia(url, outputPath) {
 
 async function generateMasterpieceSequence(row, id) {
     const quote = row.quote || '';
-    const complement = row.complement || '';
-    const verse = row.verse || '';
-    
     const qLines = quote.split(/<br>|\n/).filter(l => l.trim() !== '');
-    const cLines = complement ? complement.split(/<br>|\n/).filter(l => l.trim() !== '') : [];
     const overlays = [];
     const browser = await puppeteer.launch({ 
         headless: 'new',
@@ -101,69 +95,20 @@ async function generateMasterpieceSequence(row, id) {
     try {
         console.log('[PUPPETEER] browser launched, creating page...');
         const page = await browser.newPage();
-        console.log('[PUPPETEER] setting viewport...');
         await page.setViewport({ width: CONFIG.width, height: CONFIG.height });
-        console.log('[PUPPETEER] Viewport set. PHASE 1 start.');
-        
-        // PHASE 1: Main Quote
-        let currentTime = CONFIG.startDelay;
-        let cumulativeQ = "";
-        for (let l = 0; l < qLines.length; l++) {
-            const words = qLines[l].trim().split(/\s+/);
-            const delim = l > 0 ? "<br>" : "";
-            for (let w = 0; w < words.length; w++) {
-                let frameText = cumulativeQ + delim + words.slice(0, w + 1).join(' ');
-                let html = fs.readFileSync(CONFIG.templatePath, 'utf8')
-                    .replace('<!-- MODE -->', 'quote')
-                    .replace('<!-- CURSOR_CLASS_1 -->', 'cursor')
-                    .replace('<!-- Text injected here -->', frameText);
-                await page.setContent(html);
-                const out = path.join(CONFIG.tempDir, `${id}_q1_${overlays.length}.png`);
-                if (l===0 && w===0) console.log('[PUPPETEER] Making first screenshot at:', out);
-                await page.screenshot({ path: out, omitBackground: true });
-                overlays.push({ path: out, startTime: currentTime });
-                currentTime += CONFIG.wordDelay;
-            }
-            cumulativeQ += delim + words.join(' ');
-            currentTime += CONFIG.lineFinishDelay;
-        }
 
-        // PHASE 2: Complement
-        currentTime = Math.max(currentTime, CONFIG.complementStartTime);
-        let cumulativeC = "";
-        for (let l = 0; l < cLines.length; l++) {
-            const words = cLines[l].trim().split(/\s+/);
-            const delim = l > 0 ? "<br>" : "";
-            for (let w = 0; w < words.length; w++) {
-                let frameText = cumulativeC + delim + words.slice(0, w + 1).join(' ');
-                let html = fs.readFileSync(CONFIG.templatePath, 'utf8')
-                    .replace('<!-- MODE -->', 'quote with-complement')
-                    .replace('<!-- CURSOR_CLASS_2 -->', 'cursor')
-                    .replace('<!-- Text injected here -->', cumulativeQ)
-                    .replace('<!-- COMPLEMENT_TEXT -->', frameText);
-                await page.setContent(html);
-                const out = path.join(CONFIG.tempDir, `${id}_q2_${overlays.length}.png`);
-                await page.screenshot({ path: out, omitBackground: true });
-                overlays.push({ path: out, startTime: currentTime });
-                currentTime += CONFIG.wordDelay;
-            }
-            cumulativeC += delim + words.join(' ');
-            currentTime += CONFIG.lineFinishDelay;
-        }
+        // FASE 1: Reflexión Principal (0-23s)
+        console.log('[PUPPETEER] Generando Fase 1: Reflexión');
+        let htmlQuote = fs.readFileSync(CONFIG.templatePath, 'utf8')
+            .replace('<!-- QUOTE -->', qLines.join('<br>'))
+            .replace('<!-- MODE -->', 'quote');
+        await page.setContent(htmlQuote);
+        const qPath = path.join(CONFIG.tempDir, `${id}_quote.png`);
+        await page.screenshot({ path: qPath, omitBackground: true });
+        overlays.push({ path: qPath, startTime: 0 });
 
-        // PHASE 3: Verse
-        currentTime = Math.max(currentTime, CONFIG.verseStartTime);
-        let htmlVerse = fs.readFileSync(CONFIG.templatePath, 'utf8')
-            .replace('<!-- MODE -->', 'quote with-complement quote-verse')
-            .replace('<!-- Text injected here -->', cumulativeQ)
-            .replace('<!-- COMPLEMENT_TEXT -->', cumulativeC)
-            .replace('<!-- BI_VERSE -->', verse || "");
-        await page.setContent(htmlVerse);
-        const vPath = path.join(CONFIG.tempDir, `${id}_verse.png`);
-        await page.screenshot({ path: vPath, omitBackground: true });
-        overlays.push({ path: vPath, startTime: currentTime });
-
-        // PHASE 4: Outro (Transparent Hole)
+        // FASE 2: Cierre Animado (23-31s)
+        console.log('[PUPPETEER] Generando Fase 2: Outro');
         let htmlOutro = fs.readFileSync(CONFIG.templatePath, 'utf8')
             .replace('<!-- MODE -->', 'outro');
         await page.setContent(htmlOutro);
@@ -171,7 +116,9 @@ async function generateMasterpieceSequence(row, id) {
         await page.screenshot({ path: oPath, omitBackground: true });
         overlays.push({ path: oPath, startTime: CONFIG.outroStartTime });
         
-    } finally { await browser.close(); }
+    } finally { 
+        await browser.close(); 
+    }
     return overlays;
 }
 
