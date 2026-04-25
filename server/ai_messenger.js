@@ -8,9 +8,7 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
     const providers = [
         { name: 'Groq', key: process.env.GROQ_API_KEY, func: generateWithGroq },
         { name: 'Gemini', key: process.env.GEMINI_API_KEY, func: generateWithGemini },
-        { name: 'Mistral', key: process.env.MISTRAL_API_KEY, func: generateWithMistral },
-        { name: 'OpenAI', key: process.env.OPENAI_API_KEY, func: generateWithOpenAI },
-        { name: 'Claude', key: process.env.CLAUDE_API_KEY, func: generateWithClaude }
+        { name: 'OpenAI', key: process.env.OPENAI_API_KEY, func: generateWithOpenAI }
     ];
 
     for (const provider of providers) {
@@ -33,13 +31,26 @@ async function generateAIContent(songTitle, theologyContext = null, fallbackCita
         const norm = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         const thematic = norm(context ? context.thematic : 'aliento');
         const songName = title.split('(')[0].trim(); // Limpiamos el título
-        
         let category = 'aliento';
+
+        // 1. PRIORIDAD: Coincidencia por Título
+        const normTitle = norm(songName);
         for (const key in reflectionLibrary) {
-            if (thematic.includes(norm(key))) { category = key; break; }
+            if (normTitle === norm(key)) { category = key; break; }
         }
 
-        const baseMessages = reflectionLibrary[category] || reflectionLibrary['aliento'];
+        // 2. SEGUNDA OPCIÓN: Coincidencia por Temática
+        if (category === 'aliento') {
+            for (const key in reflectionLibrary) {
+                if (thematic.includes(norm(key))) { category = key; break; }
+            }
+        }
+
+        // 3. RESPALDO ABSOLUTO: Si nada funciona, usa la primera categoría disponible
+        const availableCategories = Object.keys(reflectionLibrary);
+        const baseMessages = reflectionLibrary[category] || reflectionLibrary[availableCategories[0]];
+        if (!baseMessages) return ["Dios tiene un plan perfecto para tu vida hoy."]; 
+
         
         // PATRONES DE NOTA DE VIDA (v37.1): Directos al corazón del espectador
         const patterns = [
@@ -104,7 +115,7 @@ async function generateWithGroq(title, context, key, ts) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
         body: JSON.stringify({
-            model: "llama3-8b-8192", 
+            model: "llama-3.3-70b-versatile", 
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7,
             response_format: { "type": "json_object" }
