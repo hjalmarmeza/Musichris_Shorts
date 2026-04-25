@@ -100,7 +100,7 @@ async function generateMasterpieceSequence(row, id) {
         // FASE 1: Reflexión Principal (0-23s)
         console.log('[PUPPETEER] Generando Fase 1: Reflexión');
         let htmlQuote = fs.readFileSync(CONFIG.templatePath, 'utf8')
-            .replace('<!-- QUOTE -->', qLines.join('<br>'))
+            .replace('<!-- Text injected here -->', qLines.join('<br>'))
             .replace('<!-- MODE -->', 'quote');
         await page.setContent(htmlQuote);
         const qPath = path.join(CONFIG.tempDir, `${id}_quote.png`);
