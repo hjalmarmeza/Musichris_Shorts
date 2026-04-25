@@ -39,6 +39,17 @@ async function getAuth() {
     }
 }
 
+// Utility for human-like title matching (ignores v2, v3, punctuation, casing, and accents)
+const smartNormalize = (s) => {
+    if (!s) return '';
+    return s.toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Quitar tildes
+        .replace(/\s+v\d+$/i, '')                       // Quitar " v2", " v1" al final
+        .replace(/\((.*?)\)/g, '')                      // Quitar todo lo entre paréntesis
+        .replace(/[^a-z0-9]/g, '')                      // Quitar TODO lo que no sea letra o número
+        .trim();
+};
+
 // Get all songs from the unified catalog (Hoja 4 of 1oTVS...)
 async function getAllSongs() {
     const auth = await getAuth();
@@ -64,15 +75,21 @@ async function getAllSongs() {
     const idxAudio = headers.findIndex(h => h.toUpperCase().includes('URL CANCIÓN'));
     const idxStatus = headers.findIndex(h => h.toUpperCase().includes('STATUS')) || 4; // Fallback a Col E
 
+    const normalizedStats = statRows.map(sr => ({
+        original: sr[1],
+        clean: smartNormalize(sr[1]),
+        row: sr
+    }));
+
     return songRows.slice(1).map((r, i) => {
         const title = r[idxTitle] || ''; 
         const audioUrl = r[idxAudio] || ''; 
         const status = r[idxStatus] || 'pending'; 
         
-        // Buscar el contador en la Hoja 4 por título
-        const normalizedTitle = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-        const statFound = statRows.find(sr => (sr[1] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() === normalizedTitle);
-        const count = statFound ? parseInt(statFound[9]) || 0 : 0; 
+        // Buscar el contador en la Hoja 4 por título usando Smart-Match
+        const cleanTitle = smartNormalize(title);
+        const statFound = normalizedStats.find(ns => ns.clean === cleanTitle || cleanTitle.includes(ns.clean) || ns.clean.includes(cleanTitle));
+        const count = statFound ? parseInt(statFound.row[9]) || 0 : 0; 
 
         return {
             rowIndex: i + 2, 
@@ -249,26 +266,25 @@ async function getSongTheology(songTitle) {
         });
         const rows = res.data.values || [];
         
-        // Normalización para búsqueda exacta        
         const headers = rows[0] || [];
-        const normalize = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const normalizeKey = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         
-        const idxTitle = headers.findIndex(h => normalize(h) === 'titulo');
-        const idxVerse = headers.findIndex(h => normalize(h).includes('verso biblico'));
-        const idxContext = headers.findIndex(h => normalize(h).includes('contenido biblico'));
-        const idxThematic = headers.findIndex(h => normalize(h).includes('tematica central'));
-        const idxShortCount = 9; // Columna J (0-indexed es 9)
-        
+        const idxTitle = headers.findIndex(h => normalizeKey(h) === 'titulo');
+        const idxVerse = headers.findIndex(h => normalizeKey(h).includes('verso biblico'));
+        const idxContext = headers.findIndex(h => normalizeKey(h).includes('contenido biblico'));
+        const idxThematic = headers.findIndex(h => normalizeKey(h).includes('tematica central'));
+        const idxShortCount = 9; 
+
         console.log(`[DEBUG] Mapeo Hoja 4: Titulo:${idxTitle}, Pasaje:${idxVerse}, Contexto:${idxContext}, Count:${idxShortCount}`);
 
-        const normalizedTarget = songTitle.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const cleanTarget = smartNormalize(songTitle);
         const found = rows.find(r => {
-            const rowTitle = (r[idxTitle] || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-            return rowTitle === normalizedTarget;
+            const cleanRow = smartNormalize(r[idxTitle]);
+            return cleanRow === cleanTarget || cleanTarget.includes(cleanRow) || cleanRow.includes(cleanTarget);
         });
         
         if (found) {
-            console.log(`[THEO-SOURCE] ¡Base bíblica encontrada para: ${songTitle}!`);
+            console.log(`[THEO-SOURCE] ¡Smart-Match exitoso para: ${songTitle}! -> Usando: ${found[idxTitle]}`);
             return {
                 verse: found[idxVerse] || 'Cita no encontrada',    
                 context: found[idxContext] || 'Contexto no encontrado',  
@@ -276,7 +292,7 @@ async function getSongTheology(songTitle) {
                 shortCount: found[idxShortCount] || 0
             };
         }
-        console.warn(`[THEO-SOURCE] No se encontró registro en Hoja 4 para: ${songTitle}`);
+        console.warn(`[THEO-SOURCE] No se encontró registro (ni siquiera parcial) para: ${songTitle}`);
         return null;
     } catch (e) {
         console.error('⚠️ Error leyendo Hoja de Teología:', e.message);
