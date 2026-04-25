@@ -15,7 +15,7 @@ const CONFIG = {
     width: 1080,
     height: 1920,
     fps: 30,
-    targetDuration: 30,
+    targetDuration: 31,
     wordDelay: 0.16,
     lineFinishDelay: 0.8,
     startDelay: 0.8,
