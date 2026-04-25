@@ -10,7 +10,7 @@ const FFPROBE_PATH = fs.existsSync('/opt/homebrew/bin/ffprobe') ? '/opt/homebrew
 const CONFIG = {
     tempDir: path.join(__dirname, 'temp'),
     outputDir: path.join(__dirname, 'output'),
-    templatePath: path.join(__dirname, 'template.html'),
+    templatePath: path.join(__dirname, '../template.html'),
     logoVideo: path.join(__dirname, 'Logo Hjalmar animado v2.mp4'),
     width: 1080,
     height: 1920,
@@ -57,7 +57,7 @@ async function downloadMedia(url, outputPath) {
             
             if (fileId) {
                 console.log(`[DEBUG] ID de Drive encontrado: ${fileId}. Usando descarga API...`);
-                const { downloadDriveFile } = require('./server/google_connector');
+                const { downloadDriveFile } = require('../server/google_connector');
                 return await downloadDriveFile(fileId, outputPath);
             } else {
                 console.warn(`[DEBUG] No se pudo extraer ID de la URL: ${url}`);
@@ -95,7 +95,7 @@ async function generateMasterpieceSequence(row, id) {
     const browser = await puppeteer.launch({ 
         headless: 'new',
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        executablePath: require('fs').existsSync('/usr/bin/google-chrome') ? '/usr/bin/google-chrome' : undefined
+        executablePath: require('fs').existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome') ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : (require('fs').existsSync('/usr/bin/google-chrome') ? '/usr/bin/google-chrome' : undefined)
     });
     
     try {
