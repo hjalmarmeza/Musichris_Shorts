@@ -84,12 +84,13 @@ async function downloadMedia(url, outputPath) {
 
 async function generateMasterpieceSequence(row, id) {
     const quote = row.quote || '';
+    const verse = row.verse || '';
     const qLines = quote.split(/<br>|\n/).filter(l => l.trim() !== '');
     const overlays = [];
     const browser = await puppeteer.launch({ 
         headless: 'new',
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        executablePath: require('fs').existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome') ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : (require('fs').existsSync('/usr/bin/google-chrome') ? '/usr/bin/google-chrome' : undefined)
+        executablePath: fs.existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome') ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : (fs.existsSync('/usr/bin/google-chrome') ? '/usr/bin/google-chrome' : undefined)
     });
     
     try {
@@ -97,15 +98,29 @@ async function generateMasterpieceSequence(row, id) {
         const page = await browser.newPage();
         await page.setViewport({ width: CONFIG.width, height: CONFIG.height });
 
-        // FASE 1: Reflexión Principal (0-23s)
-        console.log('[PUPPETEER] Generando Fase 1: Reflexión');
-        let htmlQuote = fs.readFileSync(CONFIG.templatePath, 'utf8')
-            .replace('<!-- Text injected here -->', qLines.join('<br>'))
-            .replace('<!-- MODE -->', 'quote');
-        await page.setContent(htmlQuote);
-        const qPath = path.join(CONFIG.tempDir, `${id}_quote.png`);
-        await page.screenshot({ path: qPath, omitBackground: true });
-        overlays.push({ path: qPath, startTime: 0 });
+        // FASE 1: Reflexión Dinámica (Typewriter) (0-23s)
+        console.log('[PUPPETEER] Generando Fase 1: Reflexión Dinámica');
+        let currentTime = CONFIG.startDelay;
+        let cumulativeQ = "";
+        
+        for (let l = 0; l < qLines.length; l++) {
+            const words = qLines[l].trim().split(/\s+/);
+            const delim = l > 0 ? "<br>" : "";
+            for (let w = 0; w < words.length; w++) {
+                let frameText = cumulativeQ + delim + words.slice(0, w + 1).join(' ');
+                let html = fs.readFileSync(CONFIG.templatePath, 'utf8')
+                    .replace('<!-- MODE -->', 'quote')
+                    .replace('<!-- Text injected here -->', frameText)
+                    .replace('<!-- BI_VERSE -->', verse);
+                await page.setContent(html);
+                const out = path.join(CONFIG.tempDir, `${id}_q1_${overlays.length}.png`);
+                await page.screenshot({ path: out, omitBackground: true });
+                overlays.push({ path: out, startTime: currentTime });
+                currentTime += CONFIG.wordDelay;
+            }
+            cumulativeQ += delim + words.join(' ');
+            currentTime += CONFIG.lineFinishDelay;
+        }
 
         // FASE 2: Cierre Animado (23-31s)
         console.log('[PUPPETEER] Generando Fase 2: Outro');
