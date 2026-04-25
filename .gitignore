@@ -12,3 +12,4 @@ output/
 .DS_Store
 *.log
 *.mp4
+!tools/Logo Hjalmar animado v2.mp4
