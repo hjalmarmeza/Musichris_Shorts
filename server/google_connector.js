@@ -73,12 +73,19 @@ async function getAllSongs() {
         return idx;
     };
 
-    const idxTitle = findIdx(['TITULO', 'NAME', 'CANCION']);
-    const idxAudio = findIdx(['URL', 'LINK', 'AUDIO', 'MP3', 'DRIVE'], true);
+    // Priorizamos nombres específicos basándonos en tus columnas reales
+    const idxTitle = findIdx(['TITULO DE CANCION', 'TITULO', 'CANCION']);
+    
+    // Para el audio, buscamos 'URL CANCION' y EXCLUIMOS 'IMAGEN' para no bajar la foto
+    const idxAudio = headers.findIndex(h => {
+        const head = (h || '').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        return (head.includes('URL') || head.includes('CANCION')) && !head.includes('IMAGEN');
+    });
+
     const idxStatus = findIdx(['STATUS', 'ESTADO']);
 
-    console.log(`[DEBUG] Columnas Detectadas -> Titulo: ${idxTitle}, Audio: ${idxAudio}, Status: ${idxStatus}`);
-    if (idxAudio !== -1) console.log(`[DEBUG] Ejemplo de Audio detectado: ${firstRow[idxAudio]}`);
+    console.log(`[DEBUG] Mapeo Real -> Titulo: ${idxTitle}, Audio: ${idxAudio}, Status: ${idxStatus}`);
+    if (idxAudio !== -1) console.log(`[DEBUG] Audio detectado en columna ${idxAudio}: ${firstRow[idxAudio]}`);
 
     const normalizedStats = statRows.map(sr => ({
         original: sr[1],
