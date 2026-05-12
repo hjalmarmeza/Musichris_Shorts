@@ -45,23 +45,38 @@ async function downloadMedia(url, outputPath) {
 
     console.log(`[DEBUG] Iniciando proceso para: ${url}`);
 
-    // DETECCIÓN INTELIGENTE DE DRIVE
-    if (url.includes('drive.google.com') || url.includes('/uc?')) {
+    // DETECCIÓN INTELIGENTE DE DRIVE (Universal)
+    if (url.includes('drive.google.com')) {
         console.log(`[DEBUG] Detectado enlace de Google Drive.`);
         try {
-            const urlParts = url.split('?');
-            const urlParams = new URLSearchParams(urlParts[1]);
-            const fileId = urlParams.get('id');
+            let fileId = null;
             
+            // Caso A: Enlace de descarga directa /uc?id=...
+            if (url.includes('id=')) {
+                const urlParams = new URLSearchParams(url.split('?')[1]);
+                fileId = urlParams.get('id');
+            } 
+            // Caso B: Enlace de visualización /file/d/ID/view
+            else if (url.includes('/file/d/')) {
+                fileId = url.split('/file/d/')[1].split('/')[0];
+            }
+
             if (fileId) {
-                console.log(`[DEBUG] ID de Drive encontrado: ${fileId}. Usando descarga API...`);
+                console.log(`[DEBUG] ID de Drive extraído: ${fileId}. Iniciando descarga API...`);
                 const { downloadDriveFile } = require('../server/google_connector');
-                return await downloadDriveFile(fileId, outputPath);
+                const result = await downloadDriveFile(fileId, outputPath);
+                
+                // Validación de tamaño: Si pesa menos de 1KB, es un error (página HTML)
+                const stats = fs.statSync(outputPath);
+                if (stats.size < 1000) {
+                    throw new Error("El archivo descargado es demasiado pequeño (posible error de permisos en Drive)");
+                }
+                return result;
             } else {
                 console.warn(`[DEBUG] No se pudo extraer ID de la URL: ${url}`);
             }
         } catch (e) {
-            console.error('[DRIVE-DETECT-ERROR] Error analizando URL:', e.message);
+            console.error('[DRIVE-ERROR] Falló descarga de Drive:', e.message);
         }
     }
     
