@@ -1,6 +1,3 @@
-const { google: googleSheets } = require('googleapis').sheets;
-const { google: googleDrive } = require('googleapis').drive;
-const { google: googleYoutube } = require('googleapis').youtube;
 const { google } = require('googleapis');
 const path = require('path');
 const fs = require('fs');
@@ -26,66 +23,47 @@ async function getAuth() {
     return await auth.getClient();
 }
 
-/**
- * Normalización inteligente de títulos para búsqueda difusa (fuzzy match)
- */
 function smartNormalize(text) {
     if (!text) return '';
     return text.toString()
         .toLowerCase()
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '') // Quitar acentos
-        .replace(/[^a-z0-9]/g, '')       // Quitar todo lo que no sea alfanumérico
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '')
         .trim();
 }
 
-// Get all songs from Master Catalog
 async function getAllSongs() {
     const auth = await getAuth();
-    const sheets = googleSheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: 'v4', auth });
 
-    // 1. Obtener Datos del Catálogo (Hoja 2)
     const resSongs = await sheets.spreadsheets.values.get({
         spreadsheetId: CATALOG_ID,
-        range: 'Hoja 2!A:F'
+        range: 'Hoja 2!A:G'
     });
     const songRows = resSongs.data.values || [];
 
-    // 2. Obtener Estadísticas (Hoja 4 de Teología) para los contadores
     const resStats = await sheets.spreadsheets.values.get({
         spreadsheetId: THEOLOGY_SHEET_ID,
         range: `${THEO_TAB}!A:L`
     });
     const statRows = resStats.data.values || [];
 
-    // 3. Mapeo dinámico Ultra-Flexible con verificación de contenido
     const headers = songRows[0] || [];
     const firstRow = songRows[1] || [];
     
-    const findIdx = (keywords, contentCheck = false) => {
-        let idx = headers.findIndex(h => 
-            keywords.some(k => (h || '').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(k))
-        );
-        if (contentCheck) {
-            const contentIdx = firstRow.findIndex(val => (val || '').toString().startsWith('http'));
-            if (contentIdx !== -1) return contentIdx;
-        }
-        return idx;
-    };
+    const findIdx = (keywords) => headers.findIndex(h => 
+        keywords.some(k => (h || '').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(k))
+    );
 
-    // Priorizamos nombres específicos basándonos en tus columnas reales
     const idxTitle = findIdx(['TITULO DE CANCION', 'TITULO', 'CANCION']);
-    
-    // Para el audio, buscamos 'URL CANCION' y EXCLUIMOS 'IMAGEN' para no bajar la foto
     const idxAudio = headers.findIndex(h => {
         const head = (h || '').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         return (head.includes('URL') || head.includes('CANCION')) && !head.includes('IMAGEN');
     });
-
     const idxStatus = findIdx(['STATUS', 'ESTADO']);
 
-    console.log(`[DEBUG] Mapeo Real -> Titulo: ${idxTitle}, Audio: ${idxAudio}, Status: ${idxStatus}`);
-    if (idxAudio !== -1) console.log(`[DEBUG] Audio detectado en columna ${idxAudio}: ${firstRow[idxAudio]}`);
+    console.log(`[DEBUG] Mapeo v40.0 -> Titulo: ${idxTitle}, Audio: ${idxAudio}, Status: ${idxStatus}`);
 
     const normalizedStats = statRows.map(sr => ({
         original: sr[1],
@@ -127,7 +105,7 @@ async function getAllSongs() {
 
 async function getLandscapes() {
     const auth = await getAuth();
-    const sheets = googleSheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: 'v4', auth });
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SHORTS_SHEET_ID,
         range: 'Hoja 1!A:E'
@@ -143,7 +121,7 @@ async function getLandscapes() {
 
 async function updateShortStatus(rowIndex, status, youtubeId, songName) {
     const auth = await getAuth();
-    const sheets = googleSheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: 'v4', auth });
     await sheets.spreadsheets.values.update({
         spreadsheetId: SHORTS_SHEET_ID,
         range: `Hoja 1!C${rowIndex}:E${rowIndex}`,
@@ -152,13 +130,11 @@ async function updateShortStatus(rowIndex, status, youtubeId, songName) {
             values: [[status, youtubeId, songName]]
         }
     });
-    console.log(`[SHEETS] Paisaje fila ${rowIndex} → ${status} (${songName || 'Sin Nombre'})`);
 }
 
 async function uploadToYouTube(videoPath, title, description) {
     const auth = await getAuth();
-    const youtube = googleYoutube({ version: 'v3', auth });
-    const fileSize = fs.statSync(videoPath).size;
+    const youtube = google.youtube({ version: 'v3', auth });
     const res = await youtube.videos.insert({
         part: 'snippet,status',
         requestBody: {
@@ -181,7 +157,7 @@ async function uploadToYouTube(videoPath, title, description) {
 
 async function markSongAsDone(rowIndex) {
     const auth = await getAuth();
-    const sheets = googleSheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: 'v4', auth });
     await sheets.spreadsheets.values.update({
         spreadsheetId: CATALOG_ID,
         range: `Hoja 2!E${rowIndex}`,
@@ -192,7 +168,7 @@ async function markSongAsDone(rowIndex) {
 
 async function incrementSongShortCount(songTitle) {
     const auth = await getAuth();
-    const sheets = googleSheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: 'v4', auth });
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: THEOLOGY_SHEET_ID,
         range: `${THEO_TAB}!A:L`
@@ -209,14 +185,12 @@ async function incrementSongShortCount(songTitle) {
             valueInputOption: 'RAW',
             resource: { values: [[currentCount + 1]] }
         });
-        console.log(`[SHEETS] Contador incrementado para "${songTitle}" en fila ${rowIndex + 1}`);
     }
 }
 
 async function downloadDriveFile(fileId, outputPath) {
     const auth = await getAuth();
-    const drive = googleDrive({ version: 'v3', auth });
-    console.log(`[DRIVE-API] Descargando archivo ID: ${fileId}...`);
+    const drive = google.drive({ version: 'v3', auth });
     const dest = fs.createWriteStream(outputPath);
     const res = await drive.files.get({ fileId: fileId, alt: 'media' }, { responseType: 'stream' });
     return new Promise((resolve, reject) => {
@@ -226,7 +200,7 @@ async function downloadDriveFile(fileId, outputPath) {
 
 async function getSongTheology(songTitle) {
     const auth = await getAuth();
-    const sheets = googleSheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: 'v4', auth });
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: THEOLOGY_SHEET_ID,
         range: `${THEO_TAB}!A:L`
