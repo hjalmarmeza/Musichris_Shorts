@@ -19,7 +19,19 @@ async function runEngine() {
     try {
         // 1. Obtener Datos
         const songs = await getAllSongs();
-        const song = songs.find(s => s.id === SONG_ID);
+        
+        // Búsqueda inteligente: Intenta por ID exacto, luego por ID normalizado o por Título
+        let song = songs.find(s => s.id === SONG_ID);
+        
+        if (!song && SONG_ID) {
+            console.log(`[DEBUG] ID exacto no encontrado. Probando búsqueda flexible para: ${SONG_ID}`);
+            const normalizedTarget = SONG_ID.toLowerCase().replace(/_/g, '');
+            song = songs.find(s => {
+                const sIdClean = s.id.toLowerCase().replace(/_/g, '');
+                return sIdClean === normalizedTarget || s.title.toLowerCase().includes(SONG_ID.replace(/_/g, ' '));
+            });
+        }
+
         if (!song) throw new Error(`Canción con ID "${SONG_ID}" no encontrada o no disponible.`);
 
         const landscapes = await getLandscapes();

@@ -86,7 +86,7 @@ window.MusiChrisEngine = {
                             const title = r.c?.[1]?.v; // Columna B
                             if (!title) return null;
                             return {
-                                id: title.toString().toLowerCase().replace(/[^a-z0-9]/g, '_'),
+                                id: title.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_'),
                                 title: title.toString(),
                                 biblical: r.c?.[2]?.v || '' // Columna C
                             };
