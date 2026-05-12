@@ -69,11 +69,17 @@ async function getAllSongs() {
     });
     const statRows = resStats.data.values || [];
 
-    // 3. Mapeo dinámico por cabeceras para evitar desplazamientos
+    // 3. Mapeo dinámico Ultra-Flexible para evitar fallos por cambios en el Excel
     const headers = songRows[0] || [];
-    const idxTitle = headers.findIndex(h => h.toUpperCase().includes('TÍTULO DE CANCIÓN'));
-    const idxAudio = headers.findIndex(h => h.toUpperCase().includes('URL CANCIÓN'));
-    const idxStatus = headers.findIndex(h => h.toUpperCase().includes('STATUS')) || 4; // Fallback a Col E
+    const findIdx = (keywords) => headers.findIndex(h => 
+        keywords.some(k => (h || '').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(k))
+    );
+
+    const idxTitle = findIdx(['TITULO', 'NAME', 'CANCIÓN', 'CANCION']);
+    const idxAudio = findIdx(['URL', 'LINK', 'AUDIO']);
+    const idxStatus = findIdx(['STATUS', 'ESTADO']);
+
+    console.log(`[DEBUG] Columnas encontradas -> Titulo: ${idxTitle}, Audio: ${idxAudio}, Status: ${idxStatus}`);
 
     const normalizedStats = statRows.map(sr => ({
         original: sr[1],
@@ -81,17 +87,23 @@ async function getAllSongs() {
         row: sr
     }));
 
-    return songRows.slice(1).map((r, i) => {
-        const title = r[idxTitle] || ''; 
-        const audioUrl = r[idxAudio] || ''; 
-        const status = r[idxStatus] || 'pending'; 
+    // Usamos un Map para deduplicar por título limpio
+    const uniqueSongsMap = new Map();
+
+    songRows.slice(1).forEach((r, i) => {
+        const title = (idxTitle !== -1 ? r[idxTitle] : '') || ''; 
+        const audioUrl = (idxAudio !== -1 ? r[idxAudio] : '') || ''; 
+        const status = (idxStatus !== -1 ? r[idxStatus] : 'pending') || 'pending'; 
+        
+        if (!title || title.length > 100) return;
+
+        const cleanTitle = smartNormalize(title);
         
         // Buscar el contador en la Hoja 4 por título usando Smart-Match
-        const cleanTitle = smartNormalize(title);
         const statFound = normalizedStats.find(ns => ns.clean === cleanTitle || cleanTitle.includes(ns.clean) || ns.clean.includes(cleanTitle));
         const count = statFound ? parseInt(statFound.row[9]) || 0 : 0; 
 
-        return {
+        const songObj = {
             rowIndex: i + 2, 
             album: r[0] || 'MusiChris', 
             title: title,
@@ -101,7 +113,14 @@ async function getAllSongs() {
             shortCount: count,
             id: title.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
         };
-    }).filter(s => s.title && s.title.length < 100); 
+
+        // Si ya existe, nos quedamos con el que tenga audio o sea más reciente
+        if (!uniqueSongsMap.has(cleanTitle) || audioUrl) {
+            uniqueSongsMap.set(cleanTitle, songObj);
+        }
+    });
+
+    return Array.from(uniqueSongsMap.values());
 }
 
 // Get available landscapes from MusiChris Short sheet
