@@ -7,20 +7,31 @@ const THEOLOGY_SHEET_ID = '1oTVSF7CjrCtnk3pHdBIRE8gzhE9zKDM5NJFyWV-qsJs';
 const SHORTS_SHEET_ID = '17vd4F5yhQUPYFOO6ZR6uNkBwlq2BuJRNFO9SN-ViN5Y';
 
 const THEO_TAB = 'Hoja 4';
-const KEY_FILE = path.join(__dirname, '..', 'credentials.json');
 
-// Reusable Auth Client
+// Rutas de credenciales (Raíz del proyecto en GitHub)
+const CREDENTIALS_PATH = path.join(__dirname, '..', 'credentials.json');
+const TOKEN_PATH = path.join(__dirname, '..', 'token.json');
+
+// Reusable Auth Client (MODO OAUTH2)
 async function getAuth() {
-    const auth = new google.auth.GoogleAuth({
-        keyFile: KEY_FILE,
-        scopes: [
-            'https://www.googleapis.com/auth/spreadsheets',
-            'https://www.googleapis.com/auth/drive',
-            'https://www.googleapis.com/auth/youtube.upload',
-            'https://www.googleapis.com/auth/youtube.force-ssl'
-        ],
-    });
-    return await auth.getClient();
+    if (!fs.existsSync(CREDENTIALS_PATH)) {
+        throw new Error(`Falta credentials.json en ${CREDENTIALS_PATH}`);
+    }
+
+    const content = fs.readFileSync(CREDENTIALS_PATH);
+    const credentials = JSON.parse(content);
+    const { client_secret, client_id, redirect_uris } = credentials.installed || credentials.web;
+    
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+
+    if (fs.existsSync(TOKEN_PATH)) {
+        const token = fs.readFileSync(TOKEN_PATH);
+        oAuth2Client.setCredentials(JSON.parse(token));
+    } else {
+        console.warn("⚠️ Advertencia: No se encontró token.json. Algunas operaciones podrían fallar.");
+    }
+
+    return oAuth2Client;
 }
 
 function smartNormalize(text) {
@@ -63,7 +74,7 @@ async function getAllSongs() {
     });
     const idxStatus = findIdx(['STATUS', 'ESTADO']);
 
-    console.log(`[DEBUG] Mapeo v40.0 -> Titulo: ${idxTitle}, Audio: ${idxAudio}, Status: ${idxStatus}`);
+    console.log(`[DEBUG] Mapeo OAuth2 v41.0 -> Titulo: ${idxTitle}, Audio: ${idxAudio}`);
 
     const normalizedStats = statRows.map(sr => ({
         original: sr[1],
@@ -191,8 +202,8 @@ async function incrementSongShortCount(songTitle) {
 async function downloadDriveFile(fileId, outputPath) {
     const auth = await getAuth();
     const drive = google.drive({ version: 'v3', auth });
-    const dest = fs.createWriteStream(outputPath);
     const res = await drive.files.get({ fileId: fileId, alt: 'media' }, { responseType: 'stream' });
+    const dest = fs.createWriteStream(outputPath);
     return new Promise((resolve, reject) => {
         res.data.on('end', () => resolve(outputPath)).on('error', reject).pipe(dest);
     });
