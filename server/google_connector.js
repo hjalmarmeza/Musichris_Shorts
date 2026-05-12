@@ -68,9 +68,11 @@ async function getAllSongs() {
     );
 
     const idxTitle = findIdx(['TITULO DE CANCION', 'TITULO', 'CANCION']);
+    
+    // Para el audio, buscamos 'URL' o 'CANCION', pero EXCLUIMOS 'TITULO' e 'IMAGEN'
     const idxAudio = headers.findIndex(h => {
         const head = (h || '').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        return (head.includes('URL') || head.includes('CANCION')) && !head.includes('IMAGEN');
+        return (head.includes('URL') || head.includes('CANCION')) && !head.includes('IMAGEN') && !head.includes('TITULO');
     });
     const idxStatus = findIdx(['STATUS', 'ESTADO']);
 
