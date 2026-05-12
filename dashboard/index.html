@@ -112,8 +112,10 @@
             const [status, setStatus] = useState('IDLE');
             const [log, setLog] = useState([]);
             const [isLogOpen, setIsLogOpen] = useState(false);
+            const [appError, setAppError] = useState(null);
 
             useEffect(() => {
+                window.updateLogUI = () => setLog([...Engine.log].reverse());
                 Engine.fetchCatalog().then(setSongs);
                 const interval = setInterval(() => Engine.fetchCatalog().then(setSongs), 300000);
                 return () => clearInterval(interval);
@@ -121,29 +123,37 @@
 
             const handleProduce = async (songId) => {
                 setStatus('WORKING');
-                const t = new Date().toLocaleTimeString();
-                setLog(p => [`[${t}] 🛰️ Iniciando producción: ${songId}`, ...p]);
+                Engine.addLog(`🛰️ Iniciando producción: ${songId}`);
                 
                 try {
-                    await Engine.produceShort(pat, songId);
-                    setLog(p => [`[${t}] ✅ Orden ejecutada en la nube.`, ...p]);
+                    const success = await Engine.produceShort(pat, songId);
+                    if (success) Engine.addLog(`✅ Orden ejecutada en la nube.`);
+                    else throw new Error("Falla en GitHub");
                 } catch (err) { 
-                    setLog(p => [`[${t}] ⚠️ Error: ${err.message}`, ...p]); 
+                    Engine.addLog(`⚠️ Error: ${err.message}`); 
                 }
                 setStatus('IDLE');
             };
 
             return (
                 <div className="w-full max-w-xl mx-auto px-6 py-12 pb-44">
+                    {appError && (
+                        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-md animate-slide-up">
+                            <div className="bg-red-900/80 backdrop-blur-xl border border-red-500/50 p-4 rounded-2xl flex items-center justify-between shadow-2xl">
+                                <p className="text-white text-xs font-bold">{appError}</p>
+                                <button onClick={() => setAppError(null)} className="text-white/50 hover:text-white px-2">✕</button>
+                            </div>
+                        </div>
+                    )}
                     <header className="mb-16">
                         <div className="flex justify-between items-start mb-12">
                             <div className="animate-slide-up">
                                 <h1 className="serif text-3xl md:text-7xl text-white font-bold leading-none mb-4 group">
-                                    <span className="text-[#D4AF37] group-hover:text-white transition-colors duration-700">MusiChris</span> <i className="font-light italic opacity-90 group-hover:text-[#D4AF37] transition-colors duration-700">Short</i>
+                                    <span className="text-[#D4AF37] group-hover:text-white transition-colors duration-700 drop-shadow-[0_0_15px_rgba(212,175,55,0.4)]">MusiChris</span> <i className="font-light italic opacity-90 group-hover:text-[#D4AF37] transition-colors duration-700">Shorts</i>
                                 </h1>
                                 <div className="flex items-center gap-4">
                                     <div className="h-[1px] w-12 bg-[#D4AF37]/40"></div>
-                                    <p className="text-[10px] uppercase tracking-[8px] text-[#D4AF37]/60 font-black mt-1">Cloud Production Elite</p>
+                                    <p className="text-[10px] uppercase tracking-[8px] text-[#D4AF37]/80 font-black mt-1 animate-pulse">Golden Mastery Elite</p>
                                 </div>
                             </div>
                             <button 
@@ -233,5 +243,8 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+    <div style="position: fixed; bottom: 8px; right: 15px; font-size: 10px; color: #D4AF37; font-family: 'Inter', sans-serif; pointer-events: none; letter-spacing: 1px; font-weight: 800; opacity: 0.6; z-index: 50;">
+        v39.2
+    </div>
 </body>
 </html>

@@ -115,6 +115,7 @@
             const [appError, setAppError] = useState(null);
 
             useEffect(() => {
+                window.updateLogUI = () => setLog([...Engine.log].reverse());
                 Engine.fetchCatalog().then(setSongs);
                 const interval = setInterval(() => Engine.fetchCatalog().then(setSongs), 300000);
                 return () => clearInterval(interval);
@@ -122,16 +123,14 @@
 
             const handleProduce = async (songId) => {
                 setStatus('WORKING');
-                setAppError(null); // Limpiar errores previos
-                const t = new Date().toLocaleTimeString();
-                setLog(p => [`[${t}] 🛰️ Iniciando producción: ${songId}`, ...p]);
+                Engine.addLog(`🛰️ Iniciando producción: ${songId}`);
                 
                 try {
-                    await Engine.produceShort(pat, songId);
-                    setLog(p => [`[${t}] ✅ Orden ejecutada en la nube.`, ...p]);
+                    const success = await Engine.produceShort(pat, songId);
+                    if (success) Engine.addLog(`✅ Orden ejecutada en la nube.`);
+                    else throw new Error("Falla en GitHub");
                 } catch (err) { 
-                    setLog(p => [`[${t}] ⚠️ Error: ${err.message}`, ...p]); 
-                    setAppError(`Error en "${songId}": ${err.message}`);
+                    Engine.addLog(`⚠️ Error: ${err.message}`); 
                 }
                 setStatus('IDLE');
             };
@@ -245,7 +244,7 @@
         root.render(<App />);
     </script>
     <div style="position: fixed; bottom: 8px; right: 15px; font-size: 10px; color: #D4AF37; font-family: 'Inter', sans-serif; pointer-events: none; letter-spacing: 1px; font-weight: 800; opacity: 0.6; z-index: 50;">
-        v39.1
+        v39.2
     </div>
 </body>
 </html>
