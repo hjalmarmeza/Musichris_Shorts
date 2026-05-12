@@ -1,6 +1,6 @@
 /**
- * MUSICHIRS ENGINE v39.2 - Detective Edition
- * Motor ultra-resiliente con detección de cabeceras dinámica.
+ * MUSICHIRS ENGINE v39.3 - Bulletproof Edition
+ * Procesador de datos ultra-tolerante con logs de estructura.
  */
 
 window.MusiChrisEngine = {
@@ -12,7 +12,6 @@ window.MusiChrisEngine = {
     addLog: function(msg) {
         const t = new Date().toLocaleTimeString();
         this.log.push(`[${t}] ${msg}`);
-        console.log(msg);
         if (window.updateLogUI) window.updateLogUI();
     },
 
@@ -27,20 +26,16 @@ window.MusiChrisEngine = {
         const apiBase = this.getAPI_BASE();
         if (apiBase) {
             try {
-                this.addLog("🔍 Probando conexión con servidor local...");
                 const response = await fetch(`${apiBase}/api/songs`);
-                if (response.ok) {
-                    this.addLog("✅ Servidor local conectado.");
-                    return await response.json();
-                }
-            } catch (e) { this.addLog("⚠️ Servidor local offline."); }
+                if (response.ok) return await response.json();
+            } catch (e) {}
         }
         return this.fetchFromSheets();
     },
 
     fetchFromSheets: function() {
         return new Promise((resolve) => {
-            this.addLog("🛰️ Iniciando Nexus Direct (Modo 4G)...");
+            this.addLog("🛰️ Nexus Direct v39.3: Iniciando...");
             const callbacks = {
                 cat: 'cb_cat_' + Date.now(),
                 url: 'cb_url_' + Date.now(),
@@ -51,7 +46,7 @@ window.MusiChrisEngine = {
             let loaded = 0;
 
             const finalize = () => {
-                this.addLog(`📊 Cruzando datos: ${data.theology.length} temas encontrados.`);
+                this.addLog(`📊 Fusionando: ${data.theology.length} temas.`);
                 const final = data.theology.map(s => {
                     const cleanTitle = s.title.toLowerCase().trim();
                     return {
@@ -59,71 +54,78 @@ window.MusiChrisEngine = {
                         audioUrl: data.urls[cleanTitle] || null,
                         shortCount: data.counts[cleanTitle] || 0
                     };
-                }).filter(s => s.title); // No filtramos por URL para ver qué falta
-                
+                });
                 resolve(final.sort((a, b) => a.title.localeCompare(b.title)));
             };
 
-            const findColumn = (rows, keywords) => {
+            const findColumn = (rows, keywords, label) => {
                 if (!rows || rows.length === 0) return -1;
-                const firstRow = rows[0].c;
+                const firstRow = rows[0].c || [];
                 for (let i = 0; i < firstRow.length; i++) {
-                    const val = (firstRow[i]?.v || "").toLowerCase();
-                    if (keywords.some(k => val.includes(k.toLowerCase()))) return i;
+                    const val = (firstRow[i]?.v || "").toString().toLowerCase();
+                    if (keywords.some(k => val.includes(k.toLowerCase()))) {
+                        this.addLog(`📍 [${label}] detectado en columna ${i}`);
+                        return i;
+                    }
                 }
                 return -1;
             };
 
-            // 1. HISTORIAL
             window[callbacks.his] = (res) => {
-                this.addLog("📥 Datos de Historial recibidos.");
                 try {
                     res.table.rows.forEach(r => {
                         const name = r.c[0]?.v;
                         const count = r.c[1]?.v;
                         if (name) data.counts[name.toLowerCase().trim()] = count;
                     });
-                } catch(e) { this.addLog("❌ Error procesando Historial."); }
+                    this.addLog("✅ Historial OK.");
+                } catch(e) { this.addLog("⚠️ Historial vacío."); }
                 if (++loaded === 3) finalize();
             };
 
-            // 2. URLs (Hoja 2)
             window[callbacks.url] = (res) => {
-                this.addLog("📥 Datos de URLs recibidos.");
                 try {
                     const rows = res.table.rows;
-                    const colTitle = findColumn(rows, ["título", "title", "nombre", "canción"]) || 2;
-                    const colUrl = findColumn(rows, ["url", "link", "drive", "audio"]) || 3;
+                    const colTitle = findColumn(rows, ["título", "title", "nombre"], "URL-Título");
+                    const colUrl = findColumn(rows, ["url", "link", "drive"], "URL-Link");
                     
+                    const tCol = colTitle !== -1 ? colTitle : 2;
+                    const uCol = colUrl !== -1 ? colUrl : 3;
+
                     rows.forEach((r, idx) => {
-                        if (idx === 0) return; // Saltamos cabecera si la hay
-                        const title = r.c[colTitle]?.v;
-                        const url = r.c[colUrl]?.v;
+                        if (idx === 0) return;
+                        const title = r.c[tCol]?.v;
+                        const url = r.c[uCol]?.v;
                         if (title && url) data.urls[title.toLowerCase().trim()] = url;
                     });
-                } catch(e) { this.addLog("❌ Error procesando URLs."); }
+                    this.addLog("✅ URLs OK.");
+                } catch(e) { this.addLog("⚠️ Error en URLs."); }
                 if (++loaded === 3) finalize();
             };
 
-            // 3. CATÁLOGO (Hoja 4)
             window[callbacks.cat] = (res) => {
-                this.addLog("📥 Datos de Catálogo recibidos.");
                 try {
                     const rows = res.table.rows;
-                    const colTitle = findColumn(rows, ["título", "title", "tema"]) || 1;
-                    const colBib = findColumn(rows, ["biblia", "texto", "cita"]) || 2;
+                    const colTitle = findColumn(rows, ["título", "title", "tema"], "CAT-Título");
+                    const colBib = findColumn(rows, ["biblia", "texto", "cita"], "CAT-Biblia");
                     
+                    const tCol = colTitle !== -1 ? colTitle : 1;
+                    const bCol = colBib !== -1 ? colBib : 2;
+
                     data.theology = rows.map((r, idx) => {
                         if (idx === 0) return null;
-                        const title = r.c[colTitle]?.v;
-                        if (!title || title.length > 100) return null;
+                        const title = r.c[tCol]?.v;
+                        if (!title || title.toString().length > 100) return null;
                         return {
-                            id: title.toLowerCase().replace(/[^a-z0-9]/g, '_'),
-                            title: title,
-                            biblical: r.c[colBib]?.v || ''
+                            id: title.toString().toLowerCase().replace(/[^a-z0-9]/g, '_'),
+                            title: title.toString(),
+                            biblical: r.c[bCol]?.v || ''
                         };
                     }).filter(s => s !== null);
-                } catch(e) { this.addLog("❌ Error procesando Catálogo."); }
+                    this.addLog(`✅ Catálogo OK (${data.theology.length} items).`);
+                } catch(e) { 
+                    this.addLog("❌ Error fatal en Catálogo: " + e.message); 
+                }
                 if (++loaded === 3) finalize();
             };
 
@@ -137,7 +139,7 @@ window.MusiChrisEngine = {
             addScript(`https://docs.google.com/spreadsheets/d/${this.URL_SHEET_ID}/gviz/tq?tqx=responseHandler:${callbacks.url}&sheet=Hoja%202`);
             addScript(`https://docs.google.com/spreadsheets/d/${this.CATALOG_ID}/gviz/tq?tqx=responseHandler:${callbacks.cat}&sheet=Hoja%204`);
 
-            setTimeout(() => { if (loaded < 3) { this.addLog("⏰ Tiempo de espera agotado."); resolve([]); } }, 20000);
+            setTimeout(() => { if (loaded < 3) { this.addLog("⏰ Timeout Nexus."); resolve([]); } }, 15000);
         });
     },
 
