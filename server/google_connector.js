@@ -7,7 +7,7 @@ const THEOLOGY_SHEET_ID = '1oTVSF7CjrCtnk3pHdBIRE8gzhE9zKDM5NJFyWV-qsJs';
 const SHORTS_SHEET_ID = '17vd4F5yhQUPYFOO6ZR6uNkBwlq2BuJRNFO9SN-ViN5Y';
 
 const THEO_TAB = 'Hoja 4';
-const KEY_FILE = path.join(__dirname, 'credentials.json');
+const KEY_FILE = path.join(__dirname, '..', 'credentials.json');
 
 // Reusable Auth Client
 async function getAuth() {
