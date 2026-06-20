@@ -8,7 +8,10 @@
     "render-cloud": "node server/cloud_executor.js"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "csv-parser": "^3.0.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "fluent-ffmpeg": "^2.1.2",
     "googleapis": "^128.0.0",
     "node-fetch": "^2.7.0",
