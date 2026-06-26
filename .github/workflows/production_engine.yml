@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24' # Versión de vanguardia
+          node-version: '20' # Versión LTS (Estable para googleapis)
           cache: 'npm'
 
       - name: Install System Dependencies
