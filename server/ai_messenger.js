@@ -202,13 +202,12 @@ function buildPrompt(title, context, ts) {
         
         Basado en este contexto teológico específico, genera un mensaje JSON que cumpla:
         1. "citation": Exactamente "${context.verse}".
-        2. "message": Reflexión de impacto PROFUNDA y HUMANA. Máx. 120 caracteres. 
-           PROHIBIDO usar frases genéricas como "Dios tiene paz" o "No temas". 
-           Extrae la esencia del "Contexto Teológico" arriba descrito. 
-        3. "tags": 3 hashtags de adoración.
+        2. "message": Escribe un mensaje poderoso, conmovedor y profundo que llene de fortaleza al espectador. Debe tener estrictamente entre 15 y 25 palabras (aprox 120-180 caracteres).
+           PROHIBIDO usar frases genéricas, cliché o repetitivas como "Dios tiene paz" o "No temas". Extrae la esencia real y aplicable a la vida diaria.
+        3. "tags": 3 hashtags de adoración relevantes.
         Responde ÚNICAMENTE el objeto JSON puro.`.trim();
     }
-    return `Misión: ALIENTO. Canción "${title}". (Ref: ${ts}). Genera JSON con: "citation" (Biblia), "message" (esperanza profunda, máx 120 caracteres, basada en la letra), "tags". SOLO JSON.`;
+    return `Misión: ALIENTO. Canción "${title}". (Ref: ${ts}). Genera JSON con: "citation" (Biblia), "message" (escribe un mensaje profundo, emotivo y sanador de entre 15 y 25 palabras exactas), "tags". SOLO JSON.`;
 }
 
 module.exports = { generateAIContent };

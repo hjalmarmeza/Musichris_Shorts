@@ -212,7 +212,8 @@ async function renderShort(row) {
 
     const ptsFactor = (CONFIG.targetDuration / originalDuration).toFixed(6);
     let filter = `[0:v]setpts=${ptsFactor}*PTS,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,`;
-    filter += `eq=brightness=-0.1:contrast=1.1,vignette=angle=0.5,format=yuv420p[bg];`;
+    filter += `eq=brightness=-0.1:contrast=1.1,vignette=angle=0.5,format=yuv420p,`;
+    filter += `zoompan=z='min(zoom+0.002,1.5)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920[bg];`;
     
     if (hasLogo) {
         // Process Animated Logo: Scale, Crop to circle (330px)
