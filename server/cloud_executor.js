@@ -1,7 +1,8 @@
 const fs = require('fs');
-const { getAllSongs, getLandscapes, updateShortStatus, uploadToYouTube, downloadDriveFile, getSongTheology, incrementSongShortCount, markSongAsDone } = require('./google_connector');
+const { getAllSongs, getLandscapes, updateShortStatus, downloadDriveFile, getSongTheology, incrementSongShortCount, markSongAsDone } = require('./google_connector');
 const { generateAIContent } = require('./ai_messenger');
 const { renderShort } = require('../tools/engine');
+const { uploadToYouTubeStudio } = require('../tools/puppeteer_uploader');
 const path = require('path');
 const { logProduction } = require('./audit_logger');
 
@@ -83,10 +84,10 @@ async function runEngine() {
             verse: row.verse
         });
 
-        // 5. Subida a YouTube (Descripción blindada v26.1)
+        // 5. Subida a YouTube (Simulación Humana)
         const finalVideoPath = path.join(__dirname, '..', 'output', `VIDEO_${song.id}.mp4`);
-        const ytDescription = `${finalVerse}\n\n${aiResponse.message}\n\n${aiResponse.tags}`;
-        const ytData = await uploadToYouTube(finalVideoPath, song.title, ytDescription);
+        const ytDescription = `${finalVerse}\n\n${aiResponse.message}`;
+        await uploadToYouTubeStudio(finalVideoPath, song.title, ytDescription, aiResponse.tags);
         
         // Actualizar registro con URL final
         logProduction({
@@ -94,11 +95,11 @@ async function runEngine() {
             source: aiResponse.source,
             message: aiResponse.message,
             verse: finalVerse,
-            video_url: `https://youtube.com/watch?v=${ytData.id}`
+            video_url: `Subido por Puppeteer Studio`
         });
 
         // 6. Estados y Contadores
-        await updateShortStatus(landscape.rowIndex, 'done', ytData.id, song.title);
+        await updateShortStatus(landscape.rowIndex, 'done', "Puppeteer_Upload", song.title);
         await incrementSongShortCount(song.title);
         await markSongAsDone(song.rowIndex);
         
