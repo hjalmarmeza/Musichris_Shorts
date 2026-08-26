@@ -21,28 +21,28 @@ const SongItem = ({ song, onProduce, isDisabled }) => (
     <motion.div 
         variants={itemVariants}
         whileHover={{ scale: 1.01, borderColor: "rgba(212, 175, 55, 0.4)" }}
-        className="glass-card p-6 rounded-[28px] flex items-center justify-between group mb-5 relative overflow-hidden"
+        className="glass-card p-5 sm:p-6 rounded-[28px] flex flex-col sm:flex-row sm:items-center justify-between group mb-5 relative overflow-hidden gap-4 sm:gap-0"
     >
-        <div className="flex-1 pr-6 min-w-0 z-10">
+        <div className="flex-1 w-full z-10">
             <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full bg-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                <p className="text-[#D4AF37] text-xs font-semibold tracking-[0.2em] uppercase">SHORT #{song.id.substring(0,6)}</p>
+                <p className="text-[#D4AF37] text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase">SHORT #{song.id.substring(0,6)}</p>
             </div>
-            <h4 className="serif text-lg md:text-2xl text-white font-bold leading-tight group-hover:text-[#D4AF37] transition-colors duration-500 mb-1 truncate">{song.title}</h4>
-            <p className="text-gray-400 text-sm truncate">{song.biblical || 'Sin cita bíblica asignada'}</p>
+            <h4 className="serif text-xl sm:text-2xl text-white font-bold leading-tight group-hover:text-[#D4AF37] transition-colors duration-500 mb-1 break-words">{song.title}</h4>
+            <p className="text-gray-400 text-xs sm:text-sm break-words">{song.biblical || 'Sin cita bíblica asignada'}</p>
         </div>
 
-        <div className="flex items-center gap-6 z-10">
-            <div className="text-right hidden sm:block">
-                <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Rendimientos</p>
-                <p className="text-white font-medium">{song.shortCount || 0}</p>
+        <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 z-10 pt-2 sm:pt-0 border-t border-white/5 sm:border-0 mt-2 sm:mt-0">
+            <div className="text-left sm:text-right">
+                <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-widest mb-1">Rends.</p>
+                <p className="text-white font-medium text-sm sm:text-base">{song.shortCount || 0}</p>
             </div>
             <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onProduce(song.id)}
                 disabled={isDisabled}
-                className="bg-white text-black px-8 py-3 rounded-full text-sm font-bold uppercase tracking-wider hover:bg-[#D4AF37] hover:text-white transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-white text-black px-6 py-2.5 sm:px-8 sm:py-3 rounded-full text-[11px] sm:text-sm font-bold uppercase tracking-wider hover:bg-[#D4AF37] hover:text-white transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 Publicar
             </motion.button>
