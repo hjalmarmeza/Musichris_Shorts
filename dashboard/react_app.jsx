@@ -3,7 +3,7 @@
         const Engine = window.MusiChrisEngine;
 
         const containerVariants = {
-            hidden: { opacity: 0 },
+            hidden: { opacity: 1 },
             show: {
                 opacity: 1,
                 transition: { staggerChildren: 0.1 }
@@ -11,7 +11,7 @@
         };
 
         const itemVariants = {
-            hidden: { opacity: 0, y: 20 },
+            hidden: { opacity: 1, y: 20 },
             show: { 
                 opacity: 1, 
                 y: 0,
@@ -89,9 +89,9 @@
                     <AnimatePresence>
                         {appError && (
                             <motion.div 
-                                initial={{ opacity: 0, y: -20, x: '-50%' }}
+                                initial={{ opacity: 1, y: -20, x: '-50%' }}
                                 animate={{ opacity: 1, y: 0, x: '-50%' }}
-                                exit={{ opacity: 0, y: -20, x: '-50%' }}
+                                exit={{ opacity: 1, y: -20, x: '-50%' }}
                                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                 className="fixed top-6 left-1/2 z-[200] w-[90%] max-w-md"
                             >
@@ -106,7 +106,7 @@
                     <header className="mb-16">
                         <div className="flex justify-between items-start mb-12">
                             <motion.div 
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 1, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.8, ease: "easeOut" }}
                             >
@@ -131,8 +131,8 @@
                     <div className="relative">
                         {songs.length === 0 ? (
                             <motion.div 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 0.3 }}
+                                initial={{ opacity: 1 }}
+                                animate={{ opacity: 1.3 }}
                                 className="py-40 flex flex-col items-center gap-6"
                             >
                                 <div className="w-10 h-10 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
@@ -160,15 +160,15 @@
                     <AnimatePresence>
                         {isConfiguring && (
                             <motion.div 
-                                initial={{ opacity: 0 }}
+                                initial={{ opacity: 1 }}
                                 animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
+                                exit={{ opacity: 1 }}
                                 className="fixed inset-0 bg-black/85 backdrop-blur-3xl z-[100] flex items-center justify-center p-8"
                             >
                                 <motion.div 
-                                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                    initial={{ scale: 0.9, opacity: 1, y: 20 }}
                                     animate={{ scale: 1, opacity: 1, y: 0 }}
-                                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                                    exit={{ scale: 0.9, opacity: 1, y: 20 }}
                                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                                     className="glass-card w-full max-w-sm p-12 rounded-[48px] text-center border-white/10 shadow-2xl"
                                 >
@@ -206,9 +206,9 @@
                     <AnimatePresence>
                         {isLogOpen && (
                             <motion.div 
-                                initial={{ opacity: 0 }}
+                                initial={{ opacity: 1 }}
                                 animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
+                                exit={{ opacity: 1 }}
                                 className="fixed inset-0 bg-black/70 backdrop-blur-xl z-[110]" 
                                 onClick={() => setIsLogOpen(false)}
                             >
@@ -231,7 +231,7 @@
                                             </div>
                                         ) : log.map((line, i) => (
                                             <motion.div 
-                                                initial={{ opacity: 0, x: -20 }}
+                                                initial={{ opacity: 1, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ delay: i * 0.05 }}
                                                 key={i} 

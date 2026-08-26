@@ -9,7 +9,7 @@ const {
 const Engine = window.MusiChrisEngine;
 const containerVariants = {
   hidden: {
-    opacity: 0
+    opacity: 1
   },
   show: {
     opacity: 1,
@@ -20,7 +20,7 @@ const containerVariants = {
 };
 const itemVariants = {
   hidden: {
-    opacity: 0,
+    opacity: 1,
     y: 20
   },
   show: {
@@ -102,7 +102,7 @@ function App() {
     className: "w-full max-w-xl mx-auto px-6 py-12 pb-44"
   }, /*#__PURE__*/React.createElement(AnimatePresence, null, appError && /*#__PURE__*/React.createElement(motion.div, {
     initial: {
-      opacity: 0,
+      opacity: 1,
       y: -20,
       x: '-50%'
     },
@@ -112,7 +112,7 @@ function App() {
       x: '-50%'
     },
     exit: {
-      opacity: 0,
+      opacity: 1,
       y: -20,
       x: '-50%'
     },
@@ -135,7 +135,7 @@ function App() {
     className: "flex justify-between items-start mb-12"
   }, /*#__PURE__*/React.createElement(motion.div, {
     initial: {
-      opacity: 0,
+      opacity: 1,
       y: 20
     },
     animate: {
@@ -177,10 +177,10 @@ function App() {
     className: "relative"
   }, songs.length === 0 ? /*#__PURE__*/React.createElement(motion.div, {
     initial: {
-      opacity: 0
+      opacity: 1
     },
     animate: {
-      opacity: 0.3
+      opacity: 1.3
     },
     className: "py-40 flex flex-col items-center gap-6"
   }, /*#__PURE__*/React.createElement("div", {
@@ -199,19 +199,19 @@ function App() {
     isDisabled: status === 'WORKING'
   })))), /*#__PURE__*/React.createElement(AnimatePresence, null, isConfiguring && /*#__PURE__*/React.createElement(motion.div, {
     initial: {
-      opacity: 0
+      opacity: 1
     },
     animate: {
       opacity: 1
     },
     exit: {
-      opacity: 0
+      opacity: 1
     },
     className: "fixed inset-0 bg-black/85 backdrop-blur-3xl z-[100] flex items-center justify-center p-8"
   }, /*#__PURE__*/React.createElement(motion.div, {
     initial: {
       scale: 0.9,
-      opacity: 0,
+      opacity: 1,
       y: 20
     },
     animate: {
@@ -221,7 +221,7 @@ function App() {
     },
     exit: {
       scale: 0.9,
-      opacity: 0,
+      opacity: 1,
       y: 20
     },
     transition: {
@@ -267,13 +267,13 @@ function App() {
     className: "text-[11px] font-black tracking-widest uppercase text-[#D4AF37]"
   }, "Ver Terminal"))), /*#__PURE__*/React.createElement(AnimatePresence, null, isLogOpen && /*#__PURE__*/React.createElement(motion.div, {
     initial: {
-      opacity: 0
+      opacity: 1
     },
     animate: {
       opacity: 1
     },
     exit: {
-      opacity: 0
+      opacity: 1
     },
     className: "fixed inset-0 bg-black/70 backdrop-blur-xl z-[110]",
     onClick: () => setIsLogOpen(false)
@@ -309,7 +309,7 @@ function App() {
     className: "serif italic text-lg tracking-[8px] uppercase"
   }, "Nexus Idle")) : log.map((line, i) => /*#__PURE__*/React.createElement(motion.div, {
     initial: {
-      opacity: 0,
+      opacity: 1,
       x: -20
     },
     animate: {
