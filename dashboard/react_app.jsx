@@ -1,8 +1,30 @@
         const { useState, useEffect } = React;
+        const { motion, AnimatePresence } = window.Motion;
         const Engine = window.MusiChrisEngine;
 
+        const containerVariants = {
+            hidden: { opacity: 0 },
+            show: {
+                opacity: 1,
+                transition: { staggerChildren: 0.1 }
+            }
+        };
+
+        const itemVariants = {
+            hidden: { opacity: 0, y: 20 },
+            show: { 
+                opacity: 1, 
+                y: 0,
+                transition: { type: "spring", stiffness: 300, damping: 24 }
+            }
+        };
+
         const SongItem = ({ song, onProduce, isDisabled }) => (
-            <div className="glass-card p-6 rounded-[28px] flex items-center justify-between group animate-fade mb-5">
+            <motion.div 
+                variants={itemVariants}
+                whileHover={{ scale: 1.01, borderColor: "rgba(212, 175, 55, 0.4)" }}
+                className="glass-card p-6 rounded-[28px] flex items-center justify-between group mb-5"
+            >
                 <div className="flex-1 pr-6 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                         <span className={`w-1.5 h-1.5 rounded-full ${song.shortCount > 0 ? 'bg-[#D4AF37] animate-pulse shadow-[0_0_8px_#D4AF37]' : 'bg-white/10'}`}></span>
@@ -16,19 +38,21 @@
                 </div>
                 
                 <div className="shrink-0">
-                    <button 
+                    <motion.button 
+                        whileHover={!isDisabled ? { scale: 1.05 } : {}}
+                        whileTap={!isDisabled ? { scale: 0.95 } : {}}
                         onClick={() => onProduce(song.id)}
                         disabled={isDisabled}
                         className={`
-                            relative overflow-hidden group/btn px-4 py-2 md:px-8 md:py-4 rounded-full font-black text-[10px] md:text-xs tracking-[0.2em] uppercase transition-all duration-500
-                            ${isDisabled ? 'opacity-50 cursor-not-allowed bg-white/5 text-white/20' : 'bg-[#D4AF37] text-black hover:scale-105 active:scale-95 shadow-[0_10px_20px_rgba(212,175,55,0.2)]'}
+                            relative overflow-hidden group/btn px-4 py-2 md:px-8 md:py-4 rounded-full font-black text-[10px] md:text-xs tracking-[0.2em] uppercase transition-all duration-300
+                            ${isDisabled ? 'opacity-50 cursor-not-allowed bg-white/5 text-white/20' : 'bg-[#D4AF37] text-black shadow-[0_10px_20px_rgba(212,175,55,0.2)]'}
                         `}
                     >
                         <span className="relative z-10">Publicar</span>
                         <div className="absolute inset-0 bg-white opacity-0 group-hover/btn:opacity-20 transition-opacity"></div>
-                    </button>
+                    </motion.button>
                 </div>
-            </div>
+            </motion.div>
         );
 
         function App() {
@@ -63,17 +87,30 @@
 
             return (
                 <div className="w-full max-w-xl mx-auto px-6 py-12 pb-44">
-                    {appError && (
-                        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-md animate-slide-up">
-                            <div className="bg-red-900/80 backdrop-blur-xl border border-red-500/50 p-4 rounded-2xl flex items-center justify-between shadow-2xl">
-                                <p className="text-white text-xs font-bold">{appError}</p>
-                                <button onClick={() => setAppError(null)} className="text-white/50 hover:text-white px-2">✕</button>
-                            </div>
-                        </div>
-                    )}
+                    <AnimatePresence>
+                        {appError && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: -20, x: '-50%' }}
+                                animate={{ opacity: 1, y: 0, x: '-50%' }}
+                                exit={{ opacity: 0, y: -20, x: '-50%' }}
+                                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                className="fixed top-6 left-1/2 z-[200] w-[90%] max-w-md"
+                            >
+                                <div className="bg-red-900/80 backdrop-blur-xl border border-red-500/50 p-4 rounded-2xl flex items-center justify-between shadow-2xl">
+                                    <p className="text-white text-xs font-bold">{appError}</p>
+                                    <button onClick={() => setAppError(null)} className="text-white/50 hover:text-white px-2">✕</button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
                     <header className="mb-16">
                         <div className="flex justify-between items-start mb-12">
-                            <div className="animate-slide-up">
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                            >
                                 <h1 className="serif text-3xl md:text-7xl text-white font-bold leading-none mb-4 group">
                                     <span className="text-[#D4AF37] group-hover:text-white transition-colors duration-700 drop-shadow-[0_0_15px_rgba(212,175,55,0.4)]">MusiChris</span> <i className="font-light italic opacity-90 group-hover:text-[#D4AF37] transition-colors duration-700">Shorts</i>
                                 </h1>
@@ -81,22 +118,34 @@
                                     <div className="h-[1px] w-12 bg-[#D4AF37]/40"></div>
                                     <p className="text-[10px] uppercase tracking-[8px] text-[#D4AF37]/80 font-black mt-1 animate-pulse">Golden Mastery Elite</p>
                                 </div>
-                            </div>
-                            <button 
+                            </motion.div>
+                            <motion.button 
+                                whileHover={{ scale: 1.1, rotate: 90 }}
+                                whileTap={{ scale: 0.9 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 17 }}
                                 onClick={() => setIsConfiguring(true)} 
-                                className="w-12 h-12 glass-card rounded-2xl flex items-center justify-center text-lg hover:border-[#D4AF37]/40 active:scale-90 transition-all shadow-xl"
-                            > ⚙️ </button>
+                                className="w-12 h-12 glass-card rounded-2xl flex items-center justify-center text-lg shadow-xl"
+                            > ⚙️ </motion.button>
                         </div>
                     </header>
 
                     <div className="relative">
                         {songs.length === 0 ? (
-                            <div className="py-40 flex flex-col items-center gap-6 opacity-30">
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 0.3 }}
+                                className="py-40 flex flex-col items-center gap-6"
+                            >
                                 <div className="w-10 h-10 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
                                 <p className="serif italic text-sm tracking-widest">Sincronizando Nexus...</p>
-                            </div>
+                            </motion.div>
                         ) : (
-                            <div className="space-y-4">
+                            <motion.div 
+                                variants={containerVariants}
+                                initial="hidden"
+                                animate="show"
+                                className="space-y-4"
+                            >
                                 {songs.map(song => (
                                     <SongItem 
                                         key={song.id} 
@@ -105,63 +154,98 @@
                                         isDisabled={status === 'WORKING'}
                                     />
                                 ))}
-                            </div>
+                            </motion.div>
                         )}
                     </div>
 
-                    {isConfiguring && (
-                        <div className="fixed inset-0 bg-black/85 backdrop-blur-3xl z-[100] flex items-center justify-center p-8">
-                            <div className="glass-card w-full max-w-sm p-12 rounded-[48px] text-center border-white/10 shadow-2xl">
-                                <h2 className="serif text-3xl mb-10 gold-glow text-[#D4AF37]">Vincular Motor</h2>
-                                <input 
-                                    type="password" 
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-center text-sm mb-8 outline-none focus:border-[#D4AF37]/50 transition-all font-mono"
-                                    value={pat}
-                                    onChange={(e) => setPat(e.target.value)}
-                                    placeholder="••••••••"
-                                />
-                                <button 
-                                    onClick={() => { Engine.storePat(pat); setIsConfiguring(false); }} 
-                                    className="w-full premium-btn h-16 text-black font-black rounded-2xl text-[12px] tracking-widest uppercase shadow-xl"
-                                > Activar Nexus </button>
-                            </div>
-                        </div>
-                    )}
+                    <AnimatePresence>
+                        {isConfiguring && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/85 backdrop-blur-3xl z-[100] flex items-center justify-center p-8"
+                            >
+                                <motion.div 
+                                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                    className="glass-card w-full max-w-sm p-12 rounded-[48px] text-center border-white/10 shadow-2xl"
+                                >
+                                    <h2 className="serif text-3xl mb-10 gold-glow text-[#D4AF37]">Vincular Motor</h2>
+                                    <input 
+                                        type="password" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-center text-sm mb-8 outline-none focus:border-[#D4AF37]/50 transition-all font-mono"
+                                        value={pat}
+                                        onChange={(e) => setPat(e.target.value)}
+                                        placeholder="••••••••"
+                                    />
+                                    <motion.button 
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => { Engine.storePat(pat); setIsConfiguring(false); }} 
+                                        className="w-full premium-btn h-16 text-black font-black rounded-2xl text-[12px] tracking-widest uppercase shadow-xl"
+                                    > Activar Nexus </motion.button>
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50">
-                        <button 
+                        <motion.button 
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => setIsLogOpen(true)}
-                            className="glass-card h-16 px-10 rounded-full flex items-center gap-4 hover:border-[#D4AF37]/50 active:scale-95 shadow-2xl"
+                            className="glass-card h-16 px-10 rounded-full flex items-center gap-4 hover:border-[#D4AF37]/50 shadow-2xl"
                         >
                             <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse shadow-[0_0_10px_#D4AF37]"></span>
                             <span className="text-[11px] font-black tracking-widest uppercase text-[#D4AF37]">Ver Terminal</span>
-                        </button>
+                        </motion.button>
                     </div>
 
-                    {isLogOpen && (
-                        <div className="fixed inset-0 bg-black/70 backdrop-blur-xl z-[110]" onClick={() => setIsLogOpen(false)}>
-                            <div 
-                                className="fixed bottom-0 left-0 right-0 h-[65%] glass-card rounded-t-[60px] p-12 overflow-hidden flex flex-col border-t border-white/10"
-                                onClick={e => e.stopPropagation()}
+                    <AnimatePresence>
+                        {isLogOpen && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/70 backdrop-blur-xl z-[110]" 
+                                onClick={() => setIsLogOpen(false)}
                             >
-                                <div className="flex justify-between items-center mb-10">
-                                    <h3 className="serif text-3xl text-[#D4AF37]">Log de Sistemas</h3>
-                                    <button onClick={() => setIsLogOpen(false)} className="w-12 h-12 glass-card rounded-full flex items-center justify-center hover:bg-white/10">✕</button>
-                                </div>
-                                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-5 pr-4 pb-10">
-                                    {log.length === 0 ? (
-                                        <div className="h-full flex items-center justify-center opacity-10">
-                                            <p className="serif italic text-lg tracking-[8px] uppercase">Nexus Idle</p>
-                                        </div>
-                                    ) : log.map((line, i) => (
-                                        <div key={i} className="text-[11px] font-mono text-white/40 border-l-2 border-[#D4AF37]/20 pl-6 py-3 hover:text-white/90 hover:border-[#D4AF37] transition-all duration-300">
-                                            {line}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                                <motion.div 
+                                    initial={{ y: "100%" }}
+                                    animate={{ y: 0 }}
+                                    exit={{ y: "100%" }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    className="fixed bottom-0 left-0 right-0 h-[65%] glass-card rounded-t-[60px] p-12 overflow-hidden flex flex-col border-t border-white/10"
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    <div className="flex justify-between items-center mb-10">
+                                        <h3 className="serif text-3xl text-[#D4AF37]">Log de Sistemas</h3>
+                                        <button onClick={() => setIsLogOpen(false)} className="w-12 h-12 glass-card rounded-full flex items-center justify-center hover:bg-white/10">✕</button>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar space-y-5 pr-4 pb-10">
+                                        {log.length === 0 ? (
+                                            <div className="h-full flex items-center justify-center opacity-10">
+                                                <p className="serif italic text-lg tracking-[8px] uppercase">Nexus Idle</p>
+                                            </div>
+                                        ) : log.map((line, i) => (
+                                            <motion.div 
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: i * 0.05 }}
+                                                key={i} 
+                                                className="text-[11px] font-mono text-white/40 border-l-2 border-[#D4AF37]/20 pl-6 py-3 hover:text-white/90 hover:border-[#D4AF37] transition-all duration-300"
+                                            >
+                                                {line}
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             );
         }
