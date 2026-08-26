@@ -38,12 +38,11 @@ const SongItem = ({
   onProduce,
   isDisabled
 }) => /*#__PURE__*/React.createElement(motion.div, {
-  variants: itemVariants,
   whileHover: {
     scale: 1.01,
     borderColor: "rgba(212, 175, 55, 0.4)"
   },
-  className: "glass-card p-6 rounded-[28px] flex items-center justify-between group mb-5"
+  className: "glass-card p-6 rounded-[28px] flex items-center justify-between group animate-fade mb-5"
 }, /*#__PURE__*/React.createElement("div", {
   className: "flex-1 pr-6 min-w-0"
 }, /*#__PURE__*/React.createElement("div", {
@@ -190,8 +189,8 @@ function App() {
     className: "serif italic text-sm tracking-widest"
   }, "Sincronizando Nexus...")) : /*#__PURE__*/React.createElement(motion.div, {
     variants: containerVariants,
-    initial: "hidden",
-    animate: "show",
+    initial: false,
+    animate: false,
     className: "space-y-4"
   }, songs.map(song => /*#__PURE__*/React.createElement(SongItem, {
     key: song.id,

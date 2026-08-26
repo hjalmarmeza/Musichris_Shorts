@@ -21,9 +21,8 @@
 
         const SongItem = ({ song, onProduce, isDisabled }) => (
             <motion.div 
-                variants={itemVariants}
                 whileHover={{ scale: 1.01, borderColor: "rgba(212, 175, 55, 0.4)" }}
-                className="glass-card p-6 rounded-[28px] flex items-center justify-between group mb-5"
+                className="glass-card p-6 rounded-[28px] flex items-center justify-between group animate-fade mb-5"
             >
                 <div className="flex-1 pr-6 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
@@ -142,8 +141,8 @@
                         ) : (
                             <motion.div 
                                 variants={containerVariants}
-                                initial="hidden"
-                                animate="show"
+                                initial={false}
+                                animate={false}
                                 className="space-y-4"
                             >
                                 {songs.map(song => (
