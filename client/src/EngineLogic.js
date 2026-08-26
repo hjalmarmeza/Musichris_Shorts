@@ -1,18 +1,23 @@
 /**
- * MUSICHIRS ENGINE v39.4 - X-Ray Edition
- * Diagnóstico profundo y lectura de emergencia.
+ * MUSICHIRS ENGINE v42.0 - Vite Edition
  */
 
-window.MusiChrisEngine = {
+export const Engine = {
     CATALOG_ID: '1oTVSF7CjrCtnk3pHdBIRE8gzhE9zKDM5NJFyWV-qsJs',
     URL_SHEET_ID: '19zXfIiAZktXXyixZ1HdcW1IO9bOBn8S8sRPZAXUVZbE',
     HISTORY_ID: '17vd4F5yhQUPYFOO6ZR6uNkBwlq2BuJRNFO9SN-ViN5Y',
 
     log: [],
+    updateLogUICb: null,
+
     addLog: function(msg) {
         const t = new Date().toLocaleTimeString();
         this.log.push(`[${t}] ${msg}`);
-        if (window.updateLogUI) window.updateLogUI();
+        if (this.updateLogUICb) this.updateLogUICb();
+    },
+
+    setLogCallback: function(cb) {
+        this.updateLogUICb = cb;
     },
 
     fetchCatalog: async function() {
@@ -21,7 +26,7 @@ window.MusiChrisEngine = {
 
     fetchFromSheets: function() {
         return new Promise((resolve) => {
-            this.addLog("🛰️ Nexus X-Ray v39.4: Iniciando...");
+            this.addLog("🛰️ Nexus X-Ray v42.0: Iniciando...");
             const callbacks = {
                 cat: 'cb_cat_' + Date.now(),
                 url: 'cb_url_' + Date.now(),
@@ -65,7 +70,6 @@ window.MusiChrisEngine = {
             window[callbacks.url] = (res) => {
                 const rows = safeGetRows(res, "URLs");
                 if (rows) {
-                    // Mapeo forzado si falla detección
                     rows.forEach((r, idx) => {
                         if (idx === 0) return;
                         const title = r.c?.[2]?.v; // Columna C
