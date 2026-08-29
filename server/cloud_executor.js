@@ -4,6 +4,8 @@ const { generateAIContent } = require('./ai_messenger');
 const { renderShort } = require('../tools/engine');
 const path = require('path');
 const { logProduction } = require('./audit_logger');
+const { uploadToRumble } = require('./rumble_uploader');
+const { uploadToOdysee } = require('./odysee_uploader');
 
 async function runEngine() {
     // LIMPIEZA TOTAL DE ARRANQUE: Borrar carpetas temporales para evitar archivos zombis
@@ -87,6 +89,11 @@ async function runEngine() {
         const finalVideoPath = path.join(__dirname, '..', 'output', `VIDEO_${song.id}.mp4`);
         const ytDescription = `${finalVerse}\n\n${aiResponse.message}\n\n${aiResponse.tags}`;
         const ytData = await uploadToYouTube(finalVideoPath, song.title, ytDescription);
+        
+        // 5.1 Subida a Rumble y Odysee (Simulador Humano)
+        const tagsForPlatforms = aiResponse.tags ? aiResponse.tags.replace(/#/g, '').split(' ').join(',') : 'musica cristiana,worship';
+        await uploadToRumble(finalVideoPath, song.title, ytDescription, tagsForPlatforms);
+        await uploadToOdysee(finalVideoPath, song.title, ytDescription, tagsForPlatforms);
         
         // Actualizar registro con URL final
         logProduction({

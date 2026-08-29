@@ -15,7 +15,10 @@
     "fluent-ffmpeg": "^2.1.2",
     "googleapis": "^128.0.0",
     "node-fetch": "^2.7.0",
-    "puppeteer-core": "^21.0.0"
+    "puppeteer": "^25.9.0",
+    "puppeteer-core": "^21.0.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "devDependencies": {
     "@babel/cli": "^8.0.1",
