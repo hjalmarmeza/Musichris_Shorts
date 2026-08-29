@@ -90,10 +90,15 @@ async function runEngine() {
         const ytDescription = `${finalVerse}\n\n${aiResponse.message}\n\n${aiResponse.tags}`;
         const ytData = await uploadToYouTube(finalVideoPath, song.title, ytDescription);
         
-        // 5.1 Subida a Rumble y Odysee (Simulador Humano)
-        const tagsForPlatforms = aiResponse.tags ? aiResponse.tags.replace(/#/g, '').split(' ').join(',') : 'musica cristiana,worship';
-        await uploadToRumble(finalVideoPath, song.title, ytDescription, tagsForPlatforms);
-        await uploadToOdysee(finalVideoPath, song.title, ytDescription, tagsForPlatforms);
+        // 5.1 Subida a Rumble y Odysee (Solo en local)
+        if (process.env.RUN_LOCAL === 'true') {
+            console.log('[LOCAL ENGINE] Ejecutando subidas a plataformas alternativas (Rumble/Odysee)...');
+            const tagsForPlatforms = aiResponse.tags ? aiResponse.tags.replace(/#/g, '').split(' ').join(',') : 'musica cristiana,worship';
+            await uploadToRumble(finalVideoPath, song.title, ytDescription, tagsForPlatforms);
+            await uploadToOdysee(finalVideoPath, song.title, ytDescription, tagsForPlatforms);
+        } else {
+            console.log('☁️ [CLOUD ENGINE] Saltando Rumble y Odysee (Protección Cloudflare activa en GitHub Actions).');
+        }
         
         // Actualizar registro con URL final
         logProduction({
